@@ -21,3 +21,7 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+/docker/nginx/*.log
+.DS_Store
+*.log
+/storage/backups
