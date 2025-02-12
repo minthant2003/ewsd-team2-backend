@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('phone_no');
             $table->foreignId('role_id')->constrained()->cascadeOnDelete()->cascadeOnUpdate();
             $table->foreignId('department_id')->constrained()->cascadeOnDelete()->cascadeOnUpdate();
-            $table->string('remark');
+            $table->string('remark')->nullable();
             $table->timestamps();
         });
 
