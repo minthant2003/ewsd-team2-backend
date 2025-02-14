@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\UserController;
 
 // Login
 Route::post("login", [AuthController::class, "login"]);
@@ -12,6 +13,21 @@ Route::post("login", [AuthController::class, "login"]);
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
 // })->middleware('auth:sanctum');
+
+//createUser
+Route::post("/createUser",[UserController::class, "createUser"]);
+
+//readAllUsers
+Route::get("/readUsers",[UserController::class, "readUsers"]);
+
+//readUserById
+Route::get("/readUserById/{id}",[UserController::class, "readUserById"]);
+
+//updateUser
+Route::post("/updateUser",[UserController::class, "updateUser"]);
+
+//deleteUser
+Route::post("/deleteUser/{id}",[UserController::class, "deleteUserById"]);
 
 // Get role
 Route::get("get/roles",[RoleController::class,"getRoles"]);
