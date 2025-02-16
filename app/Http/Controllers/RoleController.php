@@ -6,7 +6,7 @@ use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Classes\ApiResponseClass;
-use Illuminate\Validation\ValidationException;
+use Carbon\Carbon;
 
 class RoleController extends Controller
 {
@@ -14,9 +14,12 @@ class RoleController extends Controller
     public function getRoles()
     {
         try {
-            $role = Role::all();
-
-            return ApiResponseClass::sendResponse($role, 'Roles fetched successfully');
+            $roles = Role::all();
+            $camelObjList = [];
+            foreach ($roles as $role) {
+                $camelObjList[] = $this->formatCamelCase($role);
+            }
+            return ApiResponseClass::sendResponse($camelObjList, 'Roles fetched successfully');
         } catch (\Exception $e) {
             return ApiResponseClass::rollback($e, 'Failed to fetch Roles');
         }
@@ -31,8 +34,8 @@ class RoleController extends Controller
             if (!$role) {
                 return ApiResponseClass::sendResponse(null, 'Role not found', 404);
             }
-
-            return ApiResponseClass::sendResponse($role, 'Role fetched successfully');
+            $camelObj = $this->formatCamelCase($role);
+            return ApiResponseClass::sendResponse($camelObj, 'Role fetched successfully');
         } catch (\Exception $e) {
             return ApiResponseClass::rollback($e, 'Failed to fetch Role');
         }
@@ -42,12 +45,15 @@ class RoleController extends Controller
     public function createRole(Request $request)
     {
         try {
-            $this->roleValidationCheck($request);
+            $validationFailObj = $this->roleValidationCheck($request);
+            if ($validationFailObj) {
+                return $validationFailObj;
+            }
             $data = $this->requestRoleData($request);
 
             $role = Role::create($data);
-
-            return ApiResponseClass::sendResponse($role, 'Role created successfully', 201);
+            $camelObj = $this->formatCamelCase($role);
+            return ApiResponseClass::sendResponse($camelObj, 'Role created successfully', 201);
         } catch (\Exception $e) {
             return ApiResponseClass::rollback($e, 'Failed to create Role');
         }
@@ -81,12 +87,15 @@ class RoleController extends Controller
                 return ApiResponseClass::sendResponse(null, 'Role not found', 404);
             }
 
-            $this->roleValidationCheck($request);
+            $validationFailObj = $this->roleValidationCheck($request);
+            if ($validationFailObj) {
+                return $validationFailObj;
+            }
             $data = $this->requestRoleData($request);
 
             $role->update($data);
-
-            return ApiResponseClass::sendResponse($role, 'Role updated successfully');
+            $camelObj = $this->formatCamelCase($role);
+            return ApiResponseClass::sendResponse($camelObj, 'Role updated successfully');
         } catch (\Exception $e) {
             return ApiResponseClass::rollback($e, 'Failed to update Role');
         }
@@ -106,8 +115,9 @@ class RoleController extends Controller
         ]);
 
         if ($validator->fails()) {
-            throw new ValidationException($validator);
+            return ApiResponseClass::sendResponse($validator->errors(), "Validation errors", 400);
         }
+        return null;
     }
 
     // request role data (change to array format)
@@ -115,6 +125,17 @@ class RoleController extends Controller
         return[
             "role_name" => $request->roleName,
             "remark" => $request->remark
+        ];
+    }
+
+    private function formatCamelCase($obj)
+    {
+        return [
+            'id' => $obj->id,
+            'roleName' => $obj->role_name,
+            'remark' => $obj->remark,
+            'createdAt' => Carbon::parse($obj->created_at)->format('Y-m-d H:i:s'),
+            'updatedAt' => Carbon::parse($obj->updated_at)->format('Y-m-d H:i:s'),
         ];
     }
 
