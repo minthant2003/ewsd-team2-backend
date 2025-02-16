@@ -14,22 +14,23 @@ class UserController extends Controller
     public function createUser(Request $req)
     {
         try{
-        $this->validUser($req);
-        $user = User::create([
-            'user_name' => $req->user_name,
-            'password' => $req->password,
-            'email' => $req->email,
-            'phone_no' => $req->phone_no,
-            'role_id' => $req->role_id,
-            'department_id' => $req->department_id,
-            'remark' => $req->remark
-        ]);
-    } catch (\Exception $err) {
-        return ApiResponseClass::rollback($err, 'Failed to create user');
-    
+            $this->validUser($req);
+            $user = User::create([
+                'user_name' => $req->user_name,
+                'password' => $req->password,
+                'email' => $req->email,
+                'phone_no' => $req->phone_no,
+                'role_id' => $req->role_id,
+                'department_id' => $req->department_id,
+                'remark' => $req->remark
+            ]);
+            return ApiResponseClass::sendResponse($user, "New User has been successfully created.", 201);
+        } catch (\Exception $err) {
+            return ApiResponseClass::rollback($err, 'Failed to create user');
+
+        }
     }
-}
-  
+
     //Read all users
     public function readUsers()
     {
@@ -84,7 +85,7 @@ class UserController extends Controller
     public function deleteUserById($id)
     {
         try {
- 
+
             $success = User::where("id",$id)->delete();
 
             return ApiResponseClass::sendResponse($success, 'User deleted successfully');
@@ -107,7 +108,7 @@ class UserController extends Controller
 
         ], [
             'user_name.required' => "User Name is required",
-            'pawword.required' => "Password is required",
+            'password.required' => "Password is required",
             'email.required' => "Email is required",
             'email.unique' => "Email is already taken",
             'phone_no.required' => "Phone Number is required",
@@ -121,5 +122,4 @@ class UserController extends Controller
 
     }
 
- }
-
+}
