@@ -154,4 +154,9 @@ class UserController extends Controller
         ];
     }
 
+    public function getUser(Request $request){
+        $user = request()->user();
+        $camelObjUser = $this->formatCamelCase($user);
+        return ApiResponseClass::sendResponse($camelObjUser, "Received user successfully", 200);
+    }
 }

@@ -27,6 +27,28 @@ class AuthController extends Controller
         if (!Hash::check($request->password, $user->password)) {
             return ApiResponseClass::sendResponse(null, "Password is not correct.", 404);
         }
-        return ApiResponseClass::sendResponse($user, "Login is successful.", 200);
+        
+        $token = $user->createToken("authToken")->plainTextToken;
+
+        // return ApiResponseClass::sendResponse($user, "Login is successful.", 200);
+        return ApiResponseClass::sendResponse([
+            "user" => $user,
+            "token" => $token
+        ], "login successful", 200);
+    }
+
+    public function logout(Request $request){
+        $user = $request->user();
+        if(!$user){
+            return ApiResponseClass::sendResponse(null,"Access Denied! There is no token or invalid token");
+        }
+        // revoke exact, single user's token
+        // $request->user()->currentAccessToken()->delete();
+
+        // revoke all related user's token
+        $user->tokens()->delete();
+
+        return ApiResponseClass::sendResponse(null,"Log out successful");
+
     }
 }
