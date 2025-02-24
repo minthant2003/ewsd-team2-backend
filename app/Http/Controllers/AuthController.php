@@ -21,13 +21,10 @@ class AuthController extends Controller
         }
 
         $user = User::where("email", $request->email)->first();
-        if (!$user) {
-            return ApiResponseClass::sendResponse(null, "Email is not correct.", 404);
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return ApiResponseClass::sendResponse(null, "Email or Password is not correct.", 404);
         }
-        if (!Hash::check($request->password, $user->password)) {
-            return ApiResponseClass::sendResponse(null, "Password is not correct.", 404);
-        }
-        
+
         $token = $user->createToken("authToken")->plainTextToken;
 
         // return ApiResponseClass::sendResponse($user, "Login is successful.", 200);
