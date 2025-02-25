@@ -104,10 +104,11 @@ class DepartmentController extends Controller
     // Validate Department data
     private function departmentValidationCheck($request)
     {
+        $departmentId = $request->route('id');
         $validator = Validator::make($request->all(), [
             'departmentName' => [
                 'required',
-                'unique:departments,department_name,' . ($request->departmentId ?? 'NULL') . ',id'
+                'unique:departments,department_name,' . $departmentId . ',id'
             ]
         ], [
             'departmentName.required' => "Department name is required",

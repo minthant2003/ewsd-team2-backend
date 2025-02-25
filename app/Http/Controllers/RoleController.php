@@ -104,10 +104,11 @@ class RoleController extends Controller
     // validate role data
     private function roleValidationCheck($request)
     {
+        $roleId = $request->route('id');
         $validator = Validator::make($request->all(), [
             'roleName' => [
                 'required',
-                'unique:roles,role_name,' . ($request->roleId ?? 'NULL') . ',id'
+                'unique:roles,role_name,' . $roleId . ',id'
             ]
         ], [
             'roleName.required' => "Role name is required",
