@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Classes\ApiResponseClass;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
@@ -21,18 +22,15 @@ class AuthController extends Controller
         }
 
         $user = User::where("email", $request->email)->first();
-        if (!$user) {
-            return ApiResponseClass::sendResponse(null, "Email is not correct.", 404);
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return ApiResponseClass::sendResponse(null, "Email or Password is not correct.", 404);
         }
-        if (!Hash::check($request->password, $user->password)) {
-            return ApiResponseClass::sendResponse(null, "Password is not correct.", 404);
-        }
-        
+
         $token = $user->createToken("authToken")->plainTextToken;
 
         // return ApiResponseClass::sendResponse($user, "Login is successful.", 200);
         return ApiResponseClass::sendResponse([
-            "user" => $user,
+            "user" => $this->formatCamelCase($user),
             "token" => $token
         ], "login successful", 200);
     }
@@ -50,5 +48,20 @@ class AuthController extends Controller
 
         return ApiResponseClass::sendResponse(null,"Log out successful");
 
+    }
+
+    private function formatCamelCase($obj)
+    {
+        return [
+            'id' => $obj->id,
+            'userName' => $obj->user_name,
+            'email' => $obj->email,
+            'phoneNo' => $obj->phone_no,
+            'roleId' => $obj->role_id,
+            'departmentId' => $obj->department_id,
+            'remark' => $obj->remark,
+            'createdAt' => Carbon::parse($obj->created_at)->format('Y-m-d H:i:s'),
+            'updatedAt' => Carbon::parse($obj->updated_at)->format('Y-m-d H:i:s'),
+        ];
     }
 }
