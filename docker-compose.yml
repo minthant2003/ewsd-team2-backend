@@ -1,0 +1,77 @@
+version: "3"
+services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        image: laravel-app
+        container_name: laravel-app
+        restart: unless-stopped
+        working_dir: /var/www
+        volumes:
+            - ./:/var/www
+        depends_on:
+            mysql:
+                condition: service_healthy
+        networks:
+            - laravel-net
+
+    nginx:
+        image: nginx:alpine
+        container_name: laravel-nginx
+        restart: unless-stopped
+        ports:
+            - "80:80"
+        volumes:
+            - ./:/var/www
+            - ./docker/nginx:/etc/nginx/conf.d
+        networks:
+            - laravel-net
+
+    mysql:
+        image: mysql:8.0
+        container_name: laravel-mysql
+        restart: unless-stopped
+        environment:
+            MYSQL_DATABASE: laravel
+            MYSQL_USER: laravel
+            MYSQL_PASSWORD: secret
+            MYSQL_ROOT_PASSWORD: secret
+        ports:
+            - "3306:3306"
+        volumes:
+            - mysql-data:/var/lib/mysql
+        healthcheck:
+            test:
+                [
+                    "CMD",
+                    "mysqladmin",
+                    "ping",
+                    "-h",
+                    "localhost",
+                    "-u",
+                    "root",
+                    "-p$$MYSQL_ROOT_PASSWORD",
+                ]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+        networks:
+            - laravel-net
+
+    redis:
+        image: redis:alpine
+        container_name: laravel-redis
+        restart: unless-stopped
+        ports:
+            - "6379:6379"
+        networks:
+            - laravel-net
+
+networks:
+    laravel-net:
+        driver: bridge
+
+volumes:
+    mysql-data:
+        driver: local
