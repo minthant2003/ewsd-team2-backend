@@ -75,7 +75,7 @@ class UserController extends Controller
             if (!$user) {
                 return ApiResponseClass::sendResponse(null, 'User not found', 404);
             }
-            $validationFailObj = $this->validUser($req);
+            $validationFailObj = $this->validUserForUpdate($req);
             if ($validationFailObj) {
                 return $validationFailObj;
             }
@@ -111,18 +111,18 @@ class UserController extends Controller
         }
     }
 
-    public function validUser($user){
-        $isValid = Validator::make($user->all(), [
+    public function validUser($request){
+        $userId = $request->id;
+        $isValid = Validator::make($request->all(), [
             'userName' => 'required',
             'password' => 'required',
             'email' => [
                 'required',
-                'unique:users,email,' . ($user->email ?? 'NULL') . ',id'
+                'unique:users,email,' . $userId . ',id'
             ],
             'phoneNo' => 'required',
             'roleId' => 'required',
             'departmentId' => 'required',
-
         ], [
             'userName.required' => "User Name is required",
             'password.required' => "Password is required",
@@ -132,12 +132,38 @@ class UserController extends Controller
             'roleId.required' => "Role is required",
             'departmentId.required' => "Department is required"
         ]);
-
+ 
         if ($isValid->fails()) {
             return ApiResponseClass::sendResponse($isValid->errors(), "Validation errors", 400);
         }
         return null;
     }
+
+    public function validUserForUpdate($request){
+        $userId = $request->id;
+        $isValid = Validator::make($request->all(), [
+            'userName' => 'required',
+            'email' => [
+                'required',
+                'unique:users,email,' . $userId . ',id'
+            ],
+            'phoneNo' => 'required',
+            'roleId' => 'required',
+            'departmentId' => 'required',
+        ], [
+            'userName.required' => "User Name is required",
+            'email.required' => "Email is required",
+            'email.unique' => "Email is already taken",
+            'phoneNo.required' => "Phone Number is required",
+            'roleId.required' => "Role is required",
+            'departmentId.required' => "Department is required"
+        ]);
+ 
+        if ($isValid->fails()) {
+            return ApiResponseClass::sendResponse($isValid->errors(), "Validation errors", 400);
+        }
+        return null;
+    }   
 
     private function formatCamelCase($obj)
     {
