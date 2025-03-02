@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AcademicYearController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Request;
 use App\Http\Controllers\AuthController;
@@ -43,6 +44,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post("add/category",[CategoriesController::class,"createCategory"]);
     Route::put("update/category/{id}",[CategoriesController::class,"updateCategory"]);
     Route::delete("delete/category/{id}",[CategoriesController::class,"deleteCategory"]);
+
+     // Academic Year API
+     Route::get("get/academic-years",[AcademicYearController::class,"getAcademicYears"]);
+     Route::get("get/academic-year/{id}", [AcademicYearController::class, 'getAcademicYearById']);
+     Route::post("add/academic-year",[AcademicYearController::class,"createAcademicYear"]);
+     Route::put("update/academic-year/{id}",[AcademicYearController::class,"updateAcademicYear"]);
+     Route::delete("delete/academic-year/{id}",[AcademicYearController::class,"deleteAcademicYear"]);
 });
 
 
