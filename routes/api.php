@@ -1,11 +1,12 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Request;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RoleController;
-use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\UserController;
-use Illuminate\Support\Facades\Request;
+use App\Http\Controllers\CategoriesController;
+use App\Http\Controllers\DepartmentController;
 
 
 // Authentication
@@ -35,4 +36,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post("add/department",[DepartmentController::class,"createDepartment"]);
     Route::put("update/department/{id}",[DepartmentController::class,"updateDepartment"]);
     Route::delete("delete/department/{id}",[DepartmentController::class,"deleteDepartment"]);
+
+    // Categories API
+    Route::get("get/categories",[CategoriesController::class,"getAllCategories"]);
+    Route::get("get/category/{id}", [CategoriesController::class, 'getCategoryById']);
+    Route::post("add/category",[CategoriesController::class,"createCategory"]);
+    Route::put("update/category/{id}",[CategoriesController::class,"updateCategory"]);
+    Route::delete("delete/category/{id}",[CategoriesController::class,"deleteCategory"]);
 });
+
+
+

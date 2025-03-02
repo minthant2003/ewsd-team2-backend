@@ -2,16 +2,15 @@
 
 namespace App\Models;
 
-use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
-class Department extends Model
+class Categories extends Model
 {
     protected $guarded = [];
 
     // one to many relation
-    public function users()
+    public function ideas()
     {
-        return $this->hasMany(User::class, 'role_id');
+        return $this->hasMany(Ideas::class, 'idea_id');
     }
 }
