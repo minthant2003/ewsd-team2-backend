@@ -69,6 +69,10 @@ class RoleController extends Controller
                 return ApiResponseClass::sendResponse(null, 'Role not found', 404);
             }
 
+            if ($role->users()->exists()) {
+                return ApiResponseClass::sendResponse(null, 'Cannot delete role. It is assigned to users.', 400);
+            }
+
             $role->delete();
 
             return ApiResponseClass::sendResponse(null, 'Role deleted successfully');
@@ -76,6 +80,7 @@ class RoleController extends Controller
             return ApiResponseClass::rollback($e, 'Failed to delete Role');
         }
     }
+
 
     // update role
     public function updateRole($id, Request $request)

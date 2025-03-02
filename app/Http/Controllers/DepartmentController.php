@@ -38,6 +38,10 @@ class DepartmentController extends Controller
                 return ApiResponseClass::sendResponse(null, 'Department not found', 404);
             }
 
+            if ($department->users()->exists()) {
+                return ApiResponseClass::sendResponse(null, 'Cannot delete department. It is assigned to users.', 400);
+            }
+
             $department->delete();
 
             return ApiResponseClass::sendResponse(null, 'Department deleted successfully');
