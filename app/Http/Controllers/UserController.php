@@ -81,7 +81,6 @@ class UserController extends Controller
             }
             $success = User::where("id",$id)->update([
                 'user_name' => $req->userName,
-                'password' => Hash::make($req->password),
                 'email' => $req->email,
                 'phone_no' => $req->phoneNo,
                 'role_id' => $req->roleId,
@@ -132,7 +131,7 @@ class UserController extends Controller
             'roleId.required' => "Role is required",
             'departmentId.required' => "Department is required"
         ]);
- 
+
         if ($isValid->fails()) {
             return ApiResponseClass::sendResponse($isValid->errors(), "Validation errors", 400);
         }
@@ -158,12 +157,12 @@ class UserController extends Controller
             'roleId.required' => "Role is required",
             'departmentId.required' => "Department is required"
         ]);
- 
+
         if ($isValid->fails()) {
             return ApiResponseClass::sendResponse($isValid->errors(), "Validation errors", 400);
         }
         return null;
-    }   
+    }
 
     private function formatCamelCase($obj)
     {
