@@ -10,6 +10,21 @@ use Illuminate\Support\Facades\Validator;
 
 class AcademicYearController extends Controller
 {
+    // Get current AY
+    public static function getCurrentAcademicYear()
+    {
+        $currentAY = null;
+        try {
+            $currentDatetime = Carbon::now();
+            $currentAY = AcademicYear::where("start_date", "<=", $currentDatetime)
+                ->where("end_date", ">=", $currentDatetime)
+                ->first();
+        } catch (\Exception $e) {
+            $currentAY = null;
+        }
+        return $currentAY;
+    }
+
     // Get all academic years
     public function getAcademicYears(Request $request){
         try{
