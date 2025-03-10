@@ -16,7 +16,7 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         // refresh user table
-        DB::table('users')->truncate();
+        // DB::table('users')->truncate();
 
         // To get existing ID from role and department
         $rolesKeyValue = DB::table("roles")->pluck('id', 'role_name')->toArray();

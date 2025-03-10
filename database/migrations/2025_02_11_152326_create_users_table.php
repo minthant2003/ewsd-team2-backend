@@ -17,6 +17,8 @@ return new class extends Migration
             $table->string('password');
             $table->string('email')->unique();
             $table->string('phone_no');
+            $table->dateTime('last_login')->nullable();
+            $table->boolean('is_disable')->default(false);
             $table->foreignId('role_id')->constrained()->cascadeOnDelete()->cascadeOnUpdate();
             $table->foreignId('department_id')->constrained()->cascadeOnDelete()->cascadeOnUpdate();
             $table->string('remark')->nullable();
