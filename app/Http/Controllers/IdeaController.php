@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Classes\ApiResponseClass;
 use App\Models\Idea;
 use App\Models\IdeaDocument;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class IdeaController extends Controller
@@ -36,17 +38,84 @@ class IdeaController extends Controller
                     $filePath = $file->store('idea_documents', 'public'); // store in /storage/app/public/idea_documents
                     IdeaDocument::create([ // store file path in idea_document
                         'file_name' => $filePath,
+                        'public_file_url' => Storage::url($filePath),
                         'idea_id' => $submittedIdea->id,
                         'remark' => null,
                     ]);
                 }
             }
 
-            $submittedIdea->load('ideaDocuments'); // load idea docs
+            $submittedIdea->load('ideaDocuments'); // load related idea docs
             $camelCaseObj = $this->getIdeaWithDocsInCamelCase($submittedIdea);
             return ApiResponseClass::sendResponse($camelCaseObj, 'Idea submitted successfully.', 200);
         } catch(\Exception $e) {
             return ApiResponseClass::rollback($e, 'Failed to submit an idea.');
+        }
+    }
+
+    public function getIdeaById($id)
+    {
+        try {
+            $ideaWithDocs = Idea::with("ideaDocuments")->find($id);
+            if (!$ideaWithDocs) {
+                return ApiResponseClass::sendResponse(null, 'Idea not found', 404);
+            }
+            $camelObj = $this->getIdeaWithDocsInCamelCase($ideaWithDocs);
+            return ApiResponseClass::sendResponse($camelObj, 'Idea fetched successfully');
+        } catch (\Exception $e) {
+            return ApiResponseClass::rollback($e, 'Failed to fetch Idea.');
+        }
+    }
+
+    public function getIdeas()
+    {
+        //  {
+        //      "status": _,
+        //      "message": _,
+        //      "data": {
+        //          "pagination": _,
+        //          "ideaList": _,
+        //      }
+        //  } format
+        try {
+            $resData = [];
+            $paginateObj = null;
+            $camelList = [];
+            $ideas = Idea::with('ideaDocuments')->paginate(5);
+            $paginateObj = $this->getPaginateObj($ideas);
+            foreach ($ideas->items() as $idea) {
+                $camelList[] = $this->getIdeaWithDocsInCamelCase($idea);
+            }
+            $resData = [
+                'pagination' => $paginateObj,
+                'ideaList' => $camelList,
+            ];
+            return ApiResponseClass::sendResponse($resData, 'Idea List has been successfully retrieved.', 200);
+        } catch (\Exception $e) {
+            return ApiResponseClass::rollback($e, 'Failed to fetch Ideas.');
+        }
+    }
+
+    public function deleteIdeaById($id)
+    {
+        try {
+            $idea = Idea::with('ideaDocuments')->find($id);
+            if (!$idea) {
+                return ApiResponseClass::sendResponse(null, 'Idea not found.', 404);
+            }
+            foreach ($idea->ideaDocuments as $doc) {
+                // Step 1. delete file from storage
+                if (Storage::exists("public/{$doc->file_name}")) {
+                    Storage::delete("public/{$doc->file_name}");
+                }
+            }
+            // Step 2. delete from idea_documents
+            $idea->ideaDocuments()->delete();
+            // Step 3. delete from idea
+            $idea->delete();
+            return ApiResponseClass::sendResponse(null, "Idea deleted successfully.", 200);
+        } catch (\Exception $e) {
+            return ApiResponseClass::rollback($e, 'Failed to delete Idea.');
         }
     }
 
@@ -95,16 +164,33 @@ class IdeaController extends Controller
             'categoryId' => $ideaWithDocs->category_id,
             'academicYearId' => $ideaWithDocs->academic_year_id,
             'remark' => $ideaWithDocs->remark,
-            'createdAt' => $ideaWithDocs->created_at,
-            'updatedAt' => $ideaWithDocs->updated_at,
+            'createdAt' => Carbon::parse($ideaWithDocs->created_at)->format('Y-m-d H:i:s'),
+            'updatedAt' => Carbon::parse($ideaWithDocs->updated_at)->format('Y-m-d H:i:s'),
             'ideaDocuments' => $ideaWithDocs->ideaDocuments->map(fn($doc) => [
                 'id' => $doc->id,
                 'fileName' => $doc->file_name,
+                'publicFileUrl' => $doc->public_file_url,
                 'ideaId' => $doc->idea_id,
                 'remark' => $doc->remark,
-                'createdAt' => $doc->created_at,
-                'updatedAt' => $doc->updated_at,
+                'createdAt' => Carbon::parse($doc->created_at)->format('Y-m-d H:i:s'),
+                'updatedAt' => Carbon::parse($doc->updated_at)->format('Y-m-d H:i:s'),
             ]),
+        ];
+    }
+
+    private function getPaginateObj($pagination)
+    {
+        return [
+            'currentPage' => $pagination->currentPage(),
+            'lastPage' => $pagination->lastPage(),
+            'perPage' => $pagination->perPage(),
+            'total' => $pagination->total(),
+            'firstPageUrl' => $pagination->url(1),
+            'lastPageUrl' => $pagination->url($pagination->lastPage()),
+            'nextPageUrl' => $pagination->nextPageUrl(),
+            'prevPageUrl' => $pagination->previousPageUrl(),
+            'from' => $pagination->firstItem(),
+            'to' => $pagination->lastItem(),
         ];
     }
 }

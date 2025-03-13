@@ -3,13 +3,11 @@
 use App\Http\Controllers\AcademicYearController;
 use App\Http\Controllers\IdeaController;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Request;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\DepartmentController;
-
 
 // Authentication
 Route::post("/login",[AuthController::class,"login"]);
@@ -46,19 +44,26 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put("update/category/{id}",[CategoriesController::class,"updateCategory"]);
     Route::delete("delete/category/{id}",[CategoriesController::class,"deleteCategory"]);
 
-     // Academic Year API
-     Route::get("get/academic-years",[AcademicYearController::class,"getAcademicYears"]);
-     Route::get("get/academic-year/{id}", [AcademicYearController::class, 'getAcademicYearById']);
-     Route::post("add/academic-year",[AcademicYearController::class,"createAcademicYear"]);
-     Route::put("update/academic-year/{id}",[AcademicYearController::class,"updateAcademicYear"]);
-     Route::delete("delete/academic-year/{id}",[AcademicYearController::class,"deleteAcademicYear"]);
+    // Academic Year API
+    Route::get("get/academic-years",[AcademicYearController::class,"getAcademicYears"]);
+    Route::get("get/academic-year/{id}", [AcademicYearController::class, 'getAcademicYearById']);
+    Route::post("add/academic-year",[AcademicYearController::class,"createAcademicYear"]);
+    Route::put("update/academic-year/{id}",[AcademicYearController::class,"updateAcademicYear"]);
+    Route::delete("delete/academic-year/{id}",[AcademicYearController::class,"deleteAcademicYear"]);
 
     // Idea API
-
-    // example form request body
+    // example form request body for submit/idea
     // {
     //      "key": "_",
     //      "files": [file obj] -> file obj arr
     // }
+    // *
+    //  To access files,
+    //  1. php artisan storage:link
+    //  2. use public file url -> `${ur_backend_domain}${publicFileUrl}` at frontend
+    // *
     Route::post("submit/idea", [IdeaController::class, "submitIdea"]);
+    Route::get("get/idea/{id}", [IdeaController::class, "getIdeaById"]);
+    Route::get("get/ideas", [IdeaController::class, "getIdeas"]);
+    Route::delete("delete/idea/{id}", [IdeaController::class, "deleteIdeaById"]);
 });

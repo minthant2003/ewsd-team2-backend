@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('idea_documents', function (Blueprint $table) {
             $table->id();
             $table->string('file_name');
+            $table->string('public_file_url');
             $table->foreignId('idea_id')->constrained()->cascadeOnDelete()->cascadeOnUpdate();
             $table->text('remark')->nullable();
             $table->timestamps();
