@@ -22,6 +22,7 @@ return new class extends Migration
             $table->foreignId('category_id')->constrained()->cascadeOnDelete()->cascadeOnUpdate();
             $table->foreignId('academic_year_id')->constrained()->cascadeOnDelete()->cascadeOnUpdate();
             $table->text('remark')->nullable();
+            $table->bigInteger('report_count')->default(0);
             $table->timestamps();
         });
     }

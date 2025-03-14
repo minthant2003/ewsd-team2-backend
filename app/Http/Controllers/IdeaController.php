@@ -183,6 +183,7 @@ class IdeaController extends Controller
                 'createdAt' => Carbon::parse($doc->created_at)->format('Y-m-d H:i:s'),
                 'updatedAt' => Carbon::parse($doc->updated_at)->format('Y-m-d H:i:s'),
             ]),
+            "reportCount" => $ideaWithDocs->report_count,
         ];
     }
 
@@ -200,5 +201,20 @@ class IdeaController extends Controller
             'from' => $pagination->firstItem(),
             'to' => $pagination->lastItem(),
         ];
+    }
+
+    public function reportIdea($id)
+    {
+        try {
+            $idea = Idea::find($id);
+            if (!$idea) {
+                return ApiResponseClass::sendResponse(null, 'Idea not found.', 404);
+            }
+            $idea->report_count++;
+            $idea->save();
+            return ApiResponseClass::sendResponse(null, 'Idea reported successfully.', 200);
+        } catch (\Exception $e) {
+            return ApiResponseClass::rollback($e, 'Failed to report Idea.');
+        }
     }
 }
