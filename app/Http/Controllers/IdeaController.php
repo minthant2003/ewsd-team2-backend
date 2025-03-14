@@ -81,10 +81,18 @@ class IdeaController extends Controller
             $resData = [];
             $paginateObj = null;
             $camelList = [];
-            $ideas = Idea::with('ideaDocuments')->paginate(5);
+            $ideas = Idea::with('ideaDocuments')
+                ->join('users', 'ideas.user_id', '=', 'users.id')
+                ->join('categories', 'ideas.category_id', '=', 'categories.id')
+                ->select('ideas.*', 'users.user_name as user_name', 'categories.category_name as category_name')
+                ->paginate(5);
+                
             $paginateObj = $this->getPaginateObj($ideas);
             foreach ($ideas->items() as $idea) {
-                $camelList[] = $this->getIdeaWithDocsInCamelCase($idea);
+                $ideaData = $this->getIdeaWithDocsInCamelCase($idea);
+                $ideaData['userName'] = $idea->user_name;
+                $ideaData['categoryName'] = $idea->category_name;
+                $camelList[] = $ideaData;
             }
             $resData = [
                 'pagination' => $paginateObj,
@@ -141,7 +149,7 @@ class IdeaController extends Controller
         return [
             "title" => $request->title,
             "content" => $request->content,
-            "is_anonymous" => $request->isAnonymous ?? false,
+            "is_anonymous" => filter_var($request->isAnonymous, FILTER_VALIDATE_BOOLEAN),
             "view_count" => 0,
             "popularity" => 0,
             "user_id" => $request->userId,
