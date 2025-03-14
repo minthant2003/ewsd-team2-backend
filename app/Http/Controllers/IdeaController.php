@@ -217,4 +217,19 @@ class IdeaController extends Controller
             return ApiResponseClass::rollback($e, 'Failed to report Idea.');
         }
     }
+
+    public function increaseViewCount($id)
+    {
+        try {
+            $idea = Idea::find($id);
+            if (!$idea) {
+                return ApiResponseClass::sendResponse(null, 'Idea not found.', 404);
+            }
+            $idea->view_count++;
+            $idea->save();
+            return ApiResponseClass::sendResponse(null, 'View count increased successfully.', 200);
+        } catch (\Exception $e) {
+            return ApiResponseClass::rollback($e, 'Failed to increase view count.');
+        }
+    }
 }
