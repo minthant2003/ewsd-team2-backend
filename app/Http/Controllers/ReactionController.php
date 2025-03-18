@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Reaction;
 use Illuminate\Http\Request;
 use App\Classes\ApiResponseClass;
+use App\Models\Idea;
 
 
 class ReactionController extends Controller
@@ -13,7 +14,7 @@ class ReactionController extends Controller
     {
         $has = $this ->checkLoginUserIsThumbUp($req->ideaId, $req->userId);
         try {
-            if($has) {
+            if($has != null) {
                 $reaction = Reaction::where('idea_id', $req->ideaId)->where('user_id', $req->userId)->first();
                 if (!$reaction) {
                     return ApiResponseClass::sendResponse(null, 'Reaction not found', 404);
@@ -31,6 +32,28 @@ class ReactionController extends Controller
                     'isThumbUp' => $req->isThumbUp,
                     'remark' => $req->remark
                 ]);
+            }
+
+            $popularity = Idea:: where('id', $req->ideaId) -> first() -> popularity;
+            if($req->isThumbUp == 'like') {                
+                $popularity = $popularity + 1;
+                Idea :: where('id', $req->ideaId) -> update(['popularity' => $popularity]);
+                
+            }
+            else if($req->isThumbUp == 'unlike') {
+                $popularity = $popularity - 1;
+                Idea :: where('id', $req->ideaId) -> update(['popularity' => $popularity]);                
+            }else{
+                if($has != null) {
+                    if($has->isThumbUp == 'like') {
+                        $popularity = $popularity - 1;
+                        Idea :: where('id', $req->ideaId) -> update(['popularity' => $popularity]);
+                    }
+                    else if($has->isThumbUp == 'unlike') {
+                        $popularity = $popularity + 1;
+                        Idea :: where('id', $req->ideaId) -> update(['popularity' => $popularity]);
+                    }
+                }
             }
 
             return ApiResponseClass::sendResponse($reaction, 'Success', 200);
@@ -109,9 +132,10 @@ class ReactionController extends Controller
         try {
             return Reaction::where('idea_id', $ideaId)
                 ->where('user_id', $userId)
-                ->exists();
+                ->first();
+                //->exists();
         } catch (\Exception $err) {
-            return false; 
+            return null; 
         }
     }
 }
