@@ -78,4 +78,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get("/getTotalLike/{ideaId}",[ReactionController::class,"getTotalLike"]);
     Route::get("/getTotalUnLike/{ideaId}",[ReactionController::class,"getTotalUnLike"]);
 
+    // Comment API
+    Route::post("add/ideas/{ideaId}/comment",[CommentController::class,"addComment"]);
+    Route::get("get/ideas/{ideaId}/comment",[CommentController::class,"getCommentsByIdea"]);
+    Route::delete("delete/comments/{id}",[CommentController::class,"deleteComment"]);
 });
