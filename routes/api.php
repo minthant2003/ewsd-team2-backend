@@ -8,7 +8,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\DepartmentController;
-use App\Http\Controllers\CommentController;
+use App\Http\Controllers\ReactionController;
 
 // Authentication
 Route::post("/login",[AuthController::class,"login"]);
@@ -69,4 +69,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete("delete/idea/{id}", [IdeaController::class, "deleteIdeaById"]);
     Route::post("report/idea/{id}", [IdeaController::class, "reportIdea"]);
     Route::post("view/idea/{id}/", [IdeaController::class, "increaseViewCount"]);
+
+    //Reaction API
+    Route::post("/createReaction",[ReactionController::class,"createReaction"]);
+    Route::get("/readReactions",[ReactionController::class,"readReactions"]);
+    Route::get("/readReactionByIdeaId/{ideaId}",[ReactionController::class,"readReactionByIdeaId"]);
+   // Route::post("/deleteReactionById/{id}",[ReactionController::class,"deleteReactionById"]);
+    Route::get("/getTotalLike/{ideaId}",[ReactionController::class,"getTotalLike"]);
+    Route::get("/getTotalUnLike/{ideaId}",[ReactionController::class,"getTotalUnLike"]);
+
 });
