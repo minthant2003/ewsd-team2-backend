@@ -8,6 +8,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\CommentController;
 
 // Authentication
 Route::post("/login",[AuthController::class,"login"]);
@@ -68,4 +69,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete("delete/idea/{id}", [IdeaController::class, "deleteIdeaById"]);
     Route::post("report/idea/{id}", [IdeaController::class, "reportIdea"]);
     Route::post("view/idea/{id}/", [IdeaController::class, "increaseViewCount"]);
+
+    // Comment API
+    Route::post("add/ideas/{ideaId}/comment",[CommentController::class,"addComment"]);
+    Route::get("get/ideas/{ideaId}/comment",[CommentController::class,"getCommentsByIdea"]);
+    Route::delete("delete/comments/{id}",[CommentController::class,"deleteComment"]);
 });
