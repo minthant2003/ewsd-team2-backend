@@ -83,4 +83,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post("add/ideas/{ideaId}/comment",[CommentController::class,"addComment"]);
     Route::get("get/ideas/{ideaId}/comment",[CommentController::class,"getCommentsByIdea"]);
     Route::delete("delete/comments/{id}",[CommentController::class,"deleteComment"]);
+    
+    // Block API
+    Route::post("/blockUser/{id}", [UserController::class, "blockUser"]);
+    Route::post("/unblockUser/{id}", [UserController::class, "unblockUser"]);
+    Route::get("get/blockedUsers", [UserController::class, "getBlockedUsers"]);
+    Route::get("get/notBlockedUsers", [UserController::class, "getNotblockedUsers"]);
 });
