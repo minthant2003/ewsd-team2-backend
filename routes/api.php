@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AcademicYearController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\IdeaController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
