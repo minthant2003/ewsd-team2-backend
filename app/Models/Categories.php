@@ -11,6 +11,6 @@ class Categories extends Model
     // one to many relation
     public function ideas()
     {
-        return $this->hasMany(Ideas::class, 'idea_id');
+        return $this->hasMany(Idea::class, 'idea_id');
     }
 }

@@ -12,4 +12,9 @@ class Idea extends Model
     {
         return $this->hasMany(IdeaDocument::class);
     }
+        
+    public function comments()
+    {
+        return $this->hasMany(Comment::class, 'comment_id');
+    }
 }
