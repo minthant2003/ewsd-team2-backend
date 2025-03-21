@@ -107,9 +107,9 @@ class AcademicYearController extends Controller
                 return ApiResponseClass::sendResponse(null, 'Academic year not found', 404);
             }
 
-            // if ($academicYear->ideas()->exists()) {
-            //     return ApiResponseClass::sendResponse(null, 'Cannot delete academic year. It is assigned to ideas.', 400);
-            // }
+            if ($academicYear->ideas()->exists()) {
+                return ApiResponseClass::sendResponse(null, 'Cannot delete academic year. It is assigned to ideas.', 400);
+            }
 
             $academicYear->delete();
 
