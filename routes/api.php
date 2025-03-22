@@ -3,6 +3,7 @@
 use App\Http\Controllers\AcademicYearController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\IdeaController;
+use App\Http\Controllers\ReportedIdeaController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RoleController;
@@ -10,6 +11,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\ReactionController;
+use App\Models\ReportedIdea;
 
 // Authentication
 Route::post("/login",[AuthController::class,"login"]);
@@ -89,4 +91,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post("/unblockUser/{id}", [UserController::class, "unblockUser"]);
     Route::get("get/blockedUsers", [UserController::class, "getBlockedUsers"]);
     Route::get("get/notBlockedUsers", [UserController::class, "getNotblockedUsers"]);
+
+    // ReportedIdea API
+    Route::get("get/reportedIdeas", [ReportedIdeaController::class, "getReportedIdeas"]);
+    Route::get("get/reportedIdeaByUserId/{userId}", [ReportedIdeaController::class, "getReportedIdeasByUserId"]);
+    Route::post("report/idea", [ReportedIdeaController::class, "createReportedIdea"]);
+    Route::delete("delete/reportedIdea/{id}", [ReportedIdeaController::class, "deleteReportedIdea"]);
 });
