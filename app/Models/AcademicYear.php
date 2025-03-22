@@ -8,8 +8,8 @@ class AcademicYear extends Model
 {
     protected $guarded = [];
 
-    // public function ideas()
-    // {
-    //     return $this->hasMany(Idea::class, 'idea_id');
-    // }
+    public function ideas()
+    {
+        return $this->hasMany(Idea::class, 'idea_id');
+    }
 }

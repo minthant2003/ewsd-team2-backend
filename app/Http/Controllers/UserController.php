@@ -171,6 +171,7 @@ class UserController extends Controller
             'userName' => $obj->user_name,
             'email' => $obj->email,
             'phoneNo' => $obj->phone_no,
+            'isDisable' => $obj->is_disable,
             'roleId' => $obj->role_id,
             'departmentId' => $obj->department_id,
             'remark' => $obj->remark,
@@ -179,10 +180,83 @@ class UserController extends Controller
         ];
     }
 
+    //Get current logged in user
     public function getUser(Request $request){
         $user = request()->user()->load('role');
         $camelObjUser = $this->formatCamelCase($user);
         $camelObjUser["roleName"] = $user->role->role_name ?? null;
         return ApiResponseClass::sendResponse($camelObjUser, "Received user successfully", 200);
+    }
+
+    //Block a user
+    public function blockUser(Request $req){
+        try {
+            $userId = $req->id;
+            $user = User::find($userId);
+            if (!$user) {
+                return ApiResponseClass::sendResponse(null, 'User not found', 404);
+            }
+
+            $user->is_disable = true;
+            $user->save();
+
+            return ApiResponseClass::sendResponse($this->formatCamelCase($user), 'User has been blocked successfully');
+        } catch (\Exception $err) {
+            return ApiResponseClass::rollback($err, 'Failed to block user');
+        }
+    }
+
+    //Unblock a user
+    public function unblockUser(Request $req){
+        try {
+            $userId = $req->id;
+            $user = User::find($userId);
+            if (!$user) {
+                return ApiResponseClass::sendResponse(null, 'User not found', 404);
+            }
+
+            $user->is_disable = false;
+            $user->save();
+
+            return ApiResponseClass::sendResponse($this->formatCamelCase($user), 'User has been unblocked successfully');
+        } catch (\Exception $err) {
+            return ApiResponseClass::rollback($err, 'Failed to unblock user');
+        }
+    }
+
+    //Get blocked users
+    public function getBlockedUsers(){
+        try {
+            $users = User::where('is_disable', true)->get();
+            if ($users->isEmpty()) {
+                return ApiResponseClass::sendResponse([], 'No blocked users found', 200);
+            }
+
+            $camelObjList = [];
+            foreach ($users as $user) {
+                $camelObjList[] = $this->formatCamelCase($user);
+            }
+            return ApiResponseClass::sendResponse($camelObjList, 'List of blocked users fetched successfully');
+        } catch (\Exception $err) {
+            return ApiResponseClass::rollback($err, 'Failed to fetch blocked users');
+        }
+    }
+
+    //Get users who have not been blocked
+    public function getNotblockedUsers(){
+        try {
+            $users = User::where('is_disable', false)->get();
+            if ($users->isEmpty()) {
+                return ApiResponseClass::sendResponse([], 'No users who have not been blocked found', 200);
+            }
+
+            $camelObjList = [];
+            foreach ($users as $user) {
+                $camelObjList[] = $this->formatCamelCase($user);
+            }
+            return ApiResponseClass::sendResponse($camelObjList, 'List of users who have not been blocked fetched successfully');
+        } catch (\Exception $err) {
+            return ApiResponseClass::rollback($err, 'Failed to fetch users who have not been blocked');
+        }
     }
 }
