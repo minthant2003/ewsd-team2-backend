@@ -21,7 +21,7 @@ class ReactionController extends Controller
                 }
 
                 $reaction->update([
-                    'isThumbUp' => $req->isThumbUp,
+                    'reaction' => $req->reaction,
                     'remark' => $req->remark
                 ]);
             }
@@ -29,27 +29,27 @@ class ReactionController extends Controller
                 $reaction = Reaction::create([
                     'user_id' => $req->userId,
                     'idea_id' => $req->ideaId,
-                    'isThumbUp' => $req->isThumbUp,
+                    'reaction' => $req->reaction,
                     'remark' => $req->remark
                 ]);
             }
 
             $popularity = Idea:: where('id', $req->ideaId) -> first() -> popularity;
-            if($req->isThumbUp == 'like') {                
+            if($req->reaction == 'like') {                
                 $popularity = $popularity + 1;
                 Idea :: where('id', $req->ideaId) -> update(['popularity' => $popularity]);
                 
             }
-            else if($req->isThumbUp == 'unlike') {
+            else if($req->reaction == 'unlike') {
                 $popularity = $popularity - 1;
                 Idea :: where('id', $req->ideaId) -> update(['popularity' => $popularity]);                
             }else{
                 if($has != null) {
-                    if($has->isThumbUp == 'like') {
+                    if($has->reaction == 'like') {
                         $popularity = $popularity - 1;
                         Idea :: where('id', $req->ideaId) -> update(['popularity' => $popularity]);
                     }
-                    else if($has->isThumbUp == 'unlike') {
+                    else if($has->reaction == 'unlike') {
                         $popularity = $popularity + 1;
                         Idea :: where('id', $req->ideaId) -> update(['popularity' => $popularity]);
                     }
@@ -109,7 +109,7 @@ class ReactionController extends Controller
     public function getTotalLike($ideaId)
     {
         try {
-            $totalLike = Reaction::where('idea_id', $ideaId)->where('isThumbUp', 'like')->count();
+            $totalLike = Reaction::where('idea_id', $ideaId)->where('reaction', 'like')->count();
             return ApiResponseClass::sendResponse($totalLike, 'Success',200);
         } catch (\Exception $err) {
             return ApiResponseClass::rollback($err, 'Fail');
@@ -119,7 +119,7 @@ class ReactionController extends Controller
     public function getTotalUnLike($ideaId)
     {
         try {
-            $totalUnlike = Reaction::where('idea_id', $ideaId)->where('isThumbUp', 'unlike')->count();
+            $totalUnlike = Reaction::where('idea_id', $ideaId)->where('reaction', 'unlike')->count();
             return ApiResponseClass::sendResponse($totalUnlike, 'Success',200);
         } catch (\Exception $err) {
             return ApiResponseClass::rollback($err, 'Fail');

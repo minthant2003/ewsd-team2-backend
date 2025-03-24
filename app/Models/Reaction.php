@@ -21,7 +21,7 @@ class Reaction extends Model
     protected $fillable = [
         'user_id',
         'idea_id',
-        'isThumbUp',
+        'reaction',
         'remark'
     ];
 

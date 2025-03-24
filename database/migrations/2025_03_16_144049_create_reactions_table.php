@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete()->cascadeOnUpdate();
             $table->foreignId('idea_id')->constrained()->cascadeOnDelete()->cascadeOnUpdate();
-            $table->enum('isThumbUp', ['none','like', 'unlike']);
+            $table->enum('reaction', ['none','like', 'unlike']);
             $table->string('remark')->nullable();
             $table->timestamps();
         });
