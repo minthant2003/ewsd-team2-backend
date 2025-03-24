@@ -54,6 +54,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post("add/academic-year",[AcademicYearController::class,"createAcademicYear"]);
     Route::put("update/academic-year/{id}",[AcademicYearController::class,"updateAcademicYear"]);
     Route::delete("delete/academic-year/{id}",[AcademicYearController::class,"deleteAcademicYear"]);
+    Route::get('academic-year/{id}/ideas-csv', [AcademicYearController::class, 'downloadIdeasCsv']);
+    Route::get('academic-year/{id}/submitted-files', [AcademicYearController::class, 'downloadSubmittedFiles']);
 
     // Idea API
     // example form request body for submit/idea
