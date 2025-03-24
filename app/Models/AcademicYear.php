@@ -10,6 +10,6 @@ class AcademicYear extends Model
 
     public function ideas()
     {
-        return $this->hasMany(Idea::class, 'idea_id');
+        return $this->hasMany(Idea::class, 'academic_year_id');
     }
 }

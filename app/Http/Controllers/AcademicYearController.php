@@ -7,6 +7,7 @@ use App\Models\AcademicYear;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 
 class AcademicYearController extends Controller
 {
@@ -181,5 +182,123 @@ class AcademicYearController extends Controller
             'createdAt' => Carbon::parse($obj->created_at)->format('Y-m-d H:i:s'),
             'updatedAt' => Carbon::parse($obj->updated_at)->format('Y-m-d H:i:s'),
         ];
+    }
+
+    public function downloadIdeasCsv($id)
+    {
+        try {
+            $academicYear = AcademicYear::find($id);
+            if (!$academicYear) {
+                return ApiResponseClass::sendResponse(null, 'Academic year not found', 404);
+            }
+
+            $ideas = $academicYear->ideas()
+                ->join('users', 'ideas.user_id', '=', 'users.id')
+                ->join('categories', 'ideas.category_id', '=', 'categories.id')
+                ->select(
+                    'ideas.id',
+                    'ideas.title',
+                    'ideas.content',
+                    'ideas.is_anonymous',
+                    'ideas.view_count',
+                    'ideas.popularity',
+                    'users.user_name',
+                    'categories.category_name',
+                    'ideas.created_at'
+                )
+                ->get();
+
+            $headers = [
+                'Content-Type' => 'text/csv',
+                'Content-Disposition' => 'attachment; filename="ideas-' . $id . '.csv"',
+            ];
+
+            $callback = function() use ($ideas) {
+                $file = fopen('php://output', 'w');
+                
+                fputcsv($file, [
+                    'ID',
+                    'Title',
+                    'Content',
+                    'Anonymous',
+                    'Views',
+                    'Popularity',
+                    'Author',
+                    'Category',
+                    'Created At'
+                ]);
+
+                foreach ($ideas as $idea) {
+                    fputcsv($file, [
+                        $idea->id,
+                        $idea->title,
+                        $idea->content,
+                        $idea->is_anonymous ? 'Yes' : 'No',
+                        $idea->view_count,
+                        $idea->popularity,
+                        $idea->is_anonymous ? 'Anonymous' : $idea->user_name,
+                        $idea->category_name,
+                        Carbon::parse($idea->created_at)->format('Y-m-d H:i:s')
+                    ]);
+                }
+
+                fclose($file);
+            };
+
+            return response()->stream($callback, 200, $headers);
+
+        } catch (\Exception $e) {
+            return ApiResponseClass::rollback($e, 'Failed to download ideas CSV');
+        }
+    }
+
+    public function downloadSubmittedFiles($id)
+    {
+        try {
+            $academicYear = AcademicYear::find($id);
+            if (!$academicYear) {
+                return ApiResponseClass::sendResponse(null, 'Academic year not found', 404);
+            }
+
+            $ideas = $academicYear->ideas()->with('ideaDocuments')->get();
+            
+            $tempDirName = 'temp/' . uniqid();
+            Storage::makeDirectory($tempDirName);
+            $tempDir = Storage::path($tempDirName);
+
+            foreach ($ideas as $idea) {
+                $ideaDirName = $tempDirName . '/idea_' . $idea->id;
+                Storage::makeDirectory($ideaDirName);
+
+                foreach ($idea->ideaDocuments as $document) {
+                    if (Storage::disk('public')->exists($document->file_name)) {
+                        $fileContent = Storage::disk('public')->get($document->file_name);
+                        Storage::put($ideaDirName . '/' . basename($document->file_name), $fileContent);
+                    }
+                }
+            }
+
+            $zipFileName = "submitted-files-{$id}.zip";
+            $zipPath = Storage::path($tempDirName . '/' . $zipFileName);
+            
+            // TODO: this might work only with Docker
+            $command = "cd " . escapeshellarg(Storage::path($tempDirName)) . " && zip -r " . escapeshellarg($zipFileName) . " .";
+            exec($command);
+
+            $fileContent = Storage::get($tempDirName . '/' . $zipFileName);
+
+            Storage::deleteDirectory($tempDirName);
+
+            return response($fileContent, 200, [
+                'Content-Type' => 'application/zip',
+                'Content-Disposition' => 'attachment; filename="' . $zipFileName . '"',
+            ]);
+
+        } catch (\Exception $e) {
+            if (isset($tempDirName)) {
+                Storage::deleteDirectory($tempDirName);
+            }
+            return ApiResponseClass::rollback($e, 'Failed to download submitted files');
+        }
     }
 }
