@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class IdeaController extends Controller
 {
@@ -67,31 +68,68 @@ class IdeaController extends Controller
         }
     }
 
-    public function getIdeas()
+    public function getIdeas(Request $request)
     {
-        //  {
-        //      "status": _,
-        //      "message": _,
-        //      "data": {
-        //          "pagination": _,
-        //          "ideaList": _,
-        //      }
-        //  } format
         try {
             $resData = [];
             $paginateObj = null;
             $camelList = [];
-            $ideas = Idea::with('ideaDocuments')
+            
+            // Get sort parameter from request
+            $sortBy = $request->input('sortBy', 'created_at');
+            
+            // Map frontend sort parameters to database column names
+            $sortColumnMap = [
+                'createdAt' => 'created_at',
+                'popularity' => 'popularity',
+            ];
+            
+            // Get the actual column name to sort by
+            $sortColumn = $sortColumnMap[$sortBy] ?? 'created_at';
+            
+            // Get category filter from request
+            $categoryId = $request->input('categoryId');
+            
+            // Get keyword search from request
+            $keyword = $request->input('keyword');
+            
+            // Get page from request
+            $page = $request->input('page', 1);
+            
+            $query = Idea::with('ideaDocuments')
                 ->join('users', 'ideas.user_id', '=', 'users.id')
                 ->join('categories', 'ideas.category_id', '=', 'categories.id')
-                ->select('ideas.*', 'users.user_name as user_name', 'categories.category_name as category_name')
-                ->paginate(5);
+                ->leftJoin('comments', 'ideas.id', '=', 'comments.idea_id')
+                ->select(
+                    'ideas.*',
+                    'users.user_name as user_name',
+                    'categories.category_name as category_name',
+                    DB::raw('COUNT(DISTINCT comments.id) as comments_count')
+                )
+                ->groupBy('ideas.id', 'users.user_name', 'categories.category_name');
+            
+            // Apply category filter if provided
+            if ($categoryId && $categoryId !== 'all') {
+                $query->where('ideas.category_id', $categoryId);
+            }
+            
+            // Apply keyword search if provided
+            if ($keyword) {
+                $query->where(function($q) use ($keyword) {
+                    $q->where('ideas.title', 'like', '%' . $keyword . '%')
+                      ->orWhere('ideas.content', 'like', '%' . $keyword . '%');
+                });
+            }
+            
+            $ideas = $query->orderBy($sortColumn, 'desc')
+                ->paginate(5, ['*'], 'page', $page);
                 
             $paginateObj = $this->getPaginateObj($ideas);
             foreach ($ideas->items() as $idea) {
                 $ideaData = $this->getIdeaWithDocsInCamelCase($idea);
                 $ideaData['userName'] = $idea->user_name;
                 $ideaData['categoryName'] = $idea->category_name;
+                $ideaData['commentsCount'] = $idea->comments_count;
                 $camelList[] = $ideaData;
             }
             $resData = [
@@ -161,6 +199,17 @@ class IdeaController extends Controller
 
     private function getIdeaWithDocsInCamelCase($ideaWithDocs)
     {
+        // Get reaction counts using direct queries
+        $totalLikes = DB::table('reactions')
+            ->where('idea_id', $ideaWithDocs->id)
+            ->where('reaction', 'like')
+            ->count();
+            
+        $totalUnlikes = DB::table('reactions')
+            ->where('idea_id', $ideaWithDocs->id)
+            ->where('reaction', 'unlike')
+            ->count();
+
         return [
             'id' => $ideaWithDocs->id,
             'title' => $ideaWithDocs->title,
@@ -184,6 +233,8 @@ class IdeaController extends Controller
                 'updatedAt' => Carbon::parse($doc->updated_at)->format('Y-m-d H:i:s'),
             ]),
             "reportCount" => $ideaWithDocs->report_count,
+            "totalLikes" => $totalLikes,
+            "totalUnlikes" => $totalUnlikes,
         ];
     }
 
@@ -222,6 +273,129 @@ class IdeaController extends Controller
             return ApiResponseClass::sendResponse(null, 'View count increased successfully.', 200);
         } catch (\Exception $e) {
             return ApiResponseClass::rollback($e, 'Failed to increase view count.');
+        }
+    }
+
+    public function getIdeasByUserId(Request $request, $userId)
+    {
+        try {
+            $resData = [];
+            $paginateObj = null;
+            $camelList = [];
+            
+            // Get sort parameter from request
+            $sortBy = $request->input('sortBy', 'created_at');
+            
+            // Map frontend sort parameters to database column names
+            $sortColumnMap = [
+                'createdAt' => 'created_at',
+                'popularity' => 'popularity',
+            ];
+            
+            // Get the actual column name to sort by
+            $sortColumn = $sortColumnMap[$sortBy] ?? 'created_at';
+            
+            // Get category filter from request
+            $categoryId = $request->input('categoryId');
+            
+            // Get keyword search from request
+            $keyword = $request->input('keyword');
+            
+            // Get page from request
+            $page = $request->input('page', 1);
+            
+            $query = Idea::with('ideaDocuments')
+                ->join('users', 'ideas.user_id', '=', 'users.id')
+                ->join('categories', 'ideas.category_id', '=', 'categories.id')
+                ->leftJoin('comments', 'ideas.id', '=', 'comments.idea_id')
+                ->select(
+                    'ideas.*',
+                    'users.user_name as user_name',
+                    'categories.category_name as category_name',
+                    DB::raw('COUNT(DISTINCT comments.id) as comments_count')
+                )
+                ->where('ideas.user_id', $userId)
+                ->groupBy('ideas.id', 'users.user_name', 'categories.category_name');
+            
+            // Apply category filter if provided
+            if ($categoryId && $categoryId !== 'all') {
+                $query->where('ideas.category_id', $categoryId);
+            }
+            
+            // Apply keyword search if provided
+            if ($keyword) {
+                $query->where(function($q) use ($keyword) {
+                    $q->where('ideas.title', 'like', '%' . $keyword . '%')
+                      ->orWhere('ideas.content', 'like', '%' . $keyword . '%');
+                });
+            }
+            
+            $ideas = $query->orderBy($sortColumn, 'desc')
+                ->paginate(5, ['*'], 'page', $page);
+                
+            $paginateObj = $this->getPaginateObj($ideas);
+            foreach ($ideas->items() as $idea) {
+                $ideaData = $this->getIdeaWithDocsInCamelCase($idea);
+                $ideaData['userName'] = $idea->user_name;
+                $ideaData['categoryName'] = $idea->category_name;
+                $ideaData['commentsCount'] = $idea->comments_count;
+                $camelList[] = $ideaData;
+            }
+            $resData = [
+                'pagination' => $paginateObj,
+                'ideaList' => $camelList,
+            ];
+            return ApiResponseClass::sendResponse($resData, 'User Ideas List has been successfully retrieved.', 200);
+        } catch (\Exception $e) {
+            return ApiResponseClass::rollback($e, 'Failed to fetch User Ideas.');
+        }
+    }
+
+    public function getIdeaWithComments($id)
+    {
+        try {
+            $idea = Idea::with(['ideaDocuments'])
+                ->join('users', 'ideas.user_id', '=', 'users.id')
+                ->join('categories', 'ideas.category_id', '=', 'categories.id')
+                ->select('ideas.*', 'users.user_name', 'categories.category_name')
+                ->where('ideas.id', $id)
+                ->first();
+
+            if (!$idea) {
+                return ApiResponseClass::sendResponse(null, 'Idea not found', 404);
+            }
+
+            // Get comments with user information
+            $comments = DB::table('comments')
+                ->join('users', 'comments.user_id', '=', 'users.id')
+                ->where('comments.idea_id', $id)
+                ->select(
+                    'comments.*',
+                    'users.user_name',
+                    'users.id as user_id'
+                )
+                ->orderBy('comments.created_at', 'desc')
+                ->get()
+                ->map(function($comment) {
+                    return [
+                        'id' => $comment->id,
+                        'desc' => $comment->desc,
+                        'userId' => $comment->user_id,
+                        'userName' => $comment->user_name,
+                        'isAnonymous' => (bool) $comment->is_anonymous,
+                        'createdAt' => Carbon::parse($comment->created_at)->format('Y-m-d H:i:s'),
+                        'updatedAt' => Carbon::parse($comment->updated_at)->format('Y-m-d H:i:s'),
+                    ];
+                });
+
+            $ideaData = $this->getIdeaWithDocsInCamelCase($idea);
+            $ideaData['userName'] = $idea->user_name;
+            $ideaData['categoryName'] = $idea->category_name;
+            $ideaData['comments'] = $comments;
+
+            return ApiResponseClass::sendResponse($ideaData, 'Idea details fetched successfully');
+        } catch (\Exception $e) {
+            return ApiResponseClass::rollback($e, 'Failed to fetch idea details.');
         }
     }
 }

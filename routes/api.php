@@ -71,6 +71,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post("submit/idea", [IdeaController::class, "submitIdea"]);
     Route::get("get/idea/{id}", [IdeaController::class, "getIdeaById"]);
     Route::get("get/ideas", [IdeaController::class, "getIdeas"]);
+    Route::get("get/ideas/user/{userId}", [IdeaController::class, "getIdeasByUserId"]);
+    Route::get("get/idea/{id}/details", [IdeaController::class, "getIdeaWithComments"]);
     Route::delete("delete/idea/{id}", [IdeaController::class, "deleteIdeaById"]);
     Route::post("report/idea/{id}", [IdeaController::class, "reportIdea"]);
     Route::post("view/idea/{id}/", [IdeaController::class, "increaseViewCount"]);

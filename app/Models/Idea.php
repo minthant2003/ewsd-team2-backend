@@ -17,4 +17,9 @@ class Idea extends Model
     {
         return $this->hasMany(Comment::class, 'comment_id');
     }
+
+    public function reactions()
+    {
+        return $this->hasMany(Reaction::class);
+    }
 }
