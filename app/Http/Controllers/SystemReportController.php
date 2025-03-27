@@ -33,8 +33,8 @@ class SystemReportController extends Controller
                     $user->viewCount = (int) $user->viewCount;
                     return $user;
                 });
-            
-            
+
+
             if (count($result) == 0) {
                 return ApiResponseClass::sendResponse(null, 'No data found', 404);
             }
@@ -43,5 +43,27 @@ class SystemReportController extends Controller
             return ApiResponseClass::sendResponse(null, 'Fail', 500);
         }
     }
-       
+
+    public function getSystemReportCounts($academicYearId)
+    {
+        try {
+            $countObj = [];
+            $commentCount = DB::table('comments')
+                ->join('ideas', 'comments.idea_id', '=', 'ideas.id')
+                ->where('ideas.academic_year_id', $academicYearId)
+                ->count();
+            $ideaCount = DB::table('ideas')
+                ->where('ideas.academic_year_id', $academicYearId)
+                ->count();
+            $departmentCount = DB::table('departments')
+                ->count();
+            $countObj['commentCount'] = $commentCount;
+            $countObj['ideaCount'] = $ideaCount;
+            $countObj['departmentCount'] = $departmentCount;
+            return ApiResponseClass::sendResponse($countObj, 'System Report Count successfully retrieved.', 200);
+        } catch (\Exception $e) {
+            return ApiResponseClass::rollback($e, "Exception while getting system report counts!");
+        }
+    }
+
 }

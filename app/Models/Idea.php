@@ -12,7 +12,7 @@ class Idea extends Model
     {
         return $this->hasMany(IdeaDocument::class);
     }
-        
+
     public function comments()
     {
         return $this->hasMany(Comment::class, 'comment_id');
@@ -21,5 +21,10 @@ class Idea extends Model
     public function reactions()
     {
         return $this->hasMany(Reaction::class);
+    }
+
+    public function academicYear()
+    {
+        return $this->belongsTo(AcademicYear::class);
     }
 }

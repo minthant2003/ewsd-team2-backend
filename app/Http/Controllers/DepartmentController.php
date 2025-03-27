@@ -105,6 +105,16 @@ class DepartmentController extends Controller
         }
     }
 
+    // public function getTotalDepartmentCount()
+    // {
+    //     try {
+    //         $count = Department::count();
+    //         return ApiResponseClass::sendResponse($count, "Department count fetched successfully", 200);
+    //     } catch (\Exception $e) {
+    //         return ApiResponseClass::rollback($e, 'Failed to fetch Department Count.');
+    //     }
+    // }
+
     // Validate Department data
     private function departmentValidationCheck($request)
     {

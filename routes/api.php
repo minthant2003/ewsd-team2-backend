@@ -90,7 +90,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post("add/ideas/{ideaId}/comment",[CommentController::class,"addComment"]);
     Route::get("get/ideas/{ideaId}/comment",[CommentController::class,"getCommentsByIdea"]);
     Route::delete("delete/comments/{id}",[CommentController::class,"deleteComment"]);
-    
+
     // Block API
     Route::post("/blockUser/{id}", [UserController::class, "blockUser"]);
     Route::post("/unblockUser/{id}", [UserController::class, "unblockUser"]);
@@ -105,4 +105,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // System Report API
     Route::get("/getTopActiveUserByDepartment/{departmentId}", [SystemReportController::class, "getTopActiveUserByDepartment"]);
+    // Route::get("get/total-department-count", [DepartmentController::class, "getTotalDepartmentCount"]);
+    Route::get("get/system-report-counts/{academicYearId}", [SystemReportController::class, "getSystemReportCounts"]);
 });
