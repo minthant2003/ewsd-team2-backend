@@ -12,6 +12,7 @@ use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\ReactionController;
 use App\Models\ReportedIdea;
+use App\Http\Controllers\SystemReportController;
 
 // Authentication
 Route::post("/login",[AuthController::class,"login"]);
@@ -101,4 +102,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get("get/reportedIdeaByUserId/{userId}", [ReportedIdeaController::class, "getReportedIdeasByUserId"]);
     Route::post("report/idea", [ReportedIdeaController::class, "createReportedIdea"]);
     Route::delete("delete/reportedIdea/{id}", [ReportedIdeaController::class, "deleteReportedIdea"]);
+
+    // System Report API
+    Route::get("/getTopActiveUserByDepartment/{departmentId}", [SystemReportController::class, "getTopActiveUserByDepartment"]);
 });
