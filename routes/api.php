@@ -107,4 +107,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get("/getTopActiveUserByDepartment/{departmentId}", [SystemReportController::class, "getTopActiveUserByDepartment"]);
     // Route::get("get/total-department-count", [DepartmentController::class, "getTotalDepartmentCount"]);
     Route::get("get/system-report-counts/{academicYearId}", [SystemReportController::class, "getSystemReportCounts"]);
+
+    // Api for bar chart and pie chart, fetching idea by department according to academic year for system report
+    Route::get('/getIdeasByDepartmentAccordingToAcademicYear/{academicYearId}', [IdeaController::class, 'getIdeasByDepartmentAccordingToAcademicYear']);
 });

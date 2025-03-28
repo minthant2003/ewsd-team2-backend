@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Classes\ApiResponseClass;
+use App\Models\AcademicYear;
 use App\Models\Idea;
 use App\Models\IdeaDocument;
 use Carbon\Carbon;
@@ -397,5 +398,45 @@ class IdeaController extends Controller
         } catch (\Exception $e) {
             return ApiResponseClass::rollback($e, 'Failed to fetch idea details.');
         }
+    }
+
+    public function getIdeasByDepartmentAccordingToAcademicYear($academicYearId) {
+        $validator = Validator::make(['academic_year_id' => $academicYearId], [
+            'academic_year_id' => 'required|exists:academic_years,id'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => 'Invalid academic year ID'], 422);
+        }
+
+        // Total ideas count for the selected academic year
+        $totalIdeas = Idea::where('academic_year_id', $academicYearId)->count();
+
+        // Fetch idea count per department
+        $ideas = Idea::selectRaw('departments.id as departmentId, departments.department_name as departmentName, COUNT(ideas.id) as ideaCount')
+            ->join('users', 'ideas.user_id', '=', 'users.id')
+            ->join('departments', 'users.department_id', '=', 'departments.id')
+            ->where('ideas.academic_year_id', $academicYearId)
+            ->groupBy('departments.id', 'departments.department_name')
+            ->get();
+
+        // Add percentage calculation with camelCase
+        $ideas->transform(function ($item) use ($totalIdeas) {
+            return [
+                'departmentId' => $item->departmentId,
+                'departmentName' => $item->departmentName,
+                'ideaCount' => $item->ideaCount,
+                'percentage' => $totalIdeas > 0 ? round(($item->ideaCount / $totalIdeas) * 100, 2) : 0
+            ];
+        });
+
+        $academicName = AcademicYear::find($academicYearId)->academic_name;
+
+        return response()->json([
+            'academicYearId' => $academicYearId,
+            'academicName' => $academicName,
+            'totalIdeas' => $totalIdeas,
+            'data' => $ideas
+        ]);
     }
 }
