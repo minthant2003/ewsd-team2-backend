@@ -71,9 +71,9 @@ class CategoriesController extends Controller
                 return ApiResponseClass::sendResponse(null, 'Category not found', 404);
             }
 
-            // if ($category->ideas()->exists()) {
-            //     return ApiResponseClass::sendResponse(null, 'Cannot delete category. It is assigned to ideas.', 400);
-            // }
+            if ($category->ideas()->exists()) {
+                return ApiResponseClass::sendResponse(null, 'Cannot delete category. It is assigned to ideas.', 400);
+            }
 
             $category->delete();
 
