@@ -406,7 +406,7 @@ class IdeaController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['error' => 'Invalid academic year ID'], 422);
+            return ApiResponseClass::sendResponse($validator->errors(), "Validation errors", 400);
         }
 
         // Total ideas count for the selected academic year
