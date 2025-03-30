@@ -26,6 +26,10 @@ class AuthController extends Controller
             return ApiResponseClass::sendResponse(null, "Email or Password is not correct.", 404);
         }
 
+        if ($user->is_disable == 1) {
+            return ApiResponseClass::sendResponse(null, "Your account has been blocked. Please contact admin for more detail.", 300);
+        }
+
         $token = $user->createToken("authToken")->plainTextToken;
 
         // return ApiResponseClass::sendResponse($user, "Login is successful.", 200);
