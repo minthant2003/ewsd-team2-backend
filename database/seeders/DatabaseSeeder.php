@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             AcademicYearSeeder::class,
             CategorySeeder::class,
+            // DemoSeeder::class, // To be used when demo
         ]);
     }
 }
