@@ -45,7 +45,9 @@ class ReportedIdeaController extends Controller
 
     public function getReportedIdeas(){
         try {
-            $reportedIdeas = ReportedIdea::all();
+            $reportedIdeas = ReportedIdea::join('ideas', 'reported_ideas.idea_id', '=', 'ideas.id')
+                ->select('reported_ideas.*', 'ideas.user_id as idea_user_id')
+                ->get();
             $camelObjList = [];
             foreach ($reportedIdeas as $reportedIdea) {
                 $camelObjList[] = $this->formatCamelCase($reportedIdea);
@@ -64,7 +66,10 @@ class ReportedIdeaController extends Controller
                 return ApiResponseClass::sendResponse(null, 'This user does not exist.', 404);
             }
 
-            $reportedIdeas = ReportedIdea::where('user_id', $userId)->get();
+            $reportedIdeas = ReportedIdea::join('ideas', 'reported_ideas.idea_id', '=', 'ideas.id')
+                ->select('reported_ideas.*', 'ideas.user_id as idea_user_id')
+                ->where('reported_ideas.user_id', $userId)
+                ->get();
 
             if ($reportedIdeas->isEmpty()) {
                 return ApiResponseClass::sendResponse(null, 'No reported ideas found for this user.', 404);
@@ -127,6 +132,7 @@ class ReportedIdeaController extends Controller
             'id' => $obj->id,
             'userId' => $obj->user_id,
             'ideaId' => $obj->idea_id,
+            'ideaUserId' => $obj->idea_user_id,
             'createdAt' => Carbon::parse($obj->created_at)->format('Y-m-d H:i:s'),
             'updatedAt' => Carbon::parse($obj->updated_at)->format('Y-m-d H:i:s'),
         ];
