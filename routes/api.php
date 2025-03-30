@@ -104,7 +104,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete("delete/reportedIdea/{id}", [ReportedIdeaController::class, "deleteReportedIdea"]);
 
     // System Report API
-    Route::get("/getTopActiveUserByDepartment/{departmentId}", [SystemReportController::class, "getTopActiveUserByDepartment"]);
+    Route::get("/getTopActiveUserByAcademicYear/{academicId}", [SystemReportController::class, "getTopActiveUserByAcademicYear"]);
     // Route::get("get/total-department-count", [DepartmentController::class, "getTotalDepartmentCount"]);
     Route::get("get/system-report-counts/{academicYearId}", [SystemReportController::class, "getSystemReportCounts"]);
 
