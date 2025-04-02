@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Comment;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class SystemReportController extends Controller
 {
@@ -68,4 +69,36 @@ class SystemReportController extends Controller
         }
     }
 
+    public function getAnonymousCountsByAcademicYearForManager($academicYearId)
+    {
+        try {
+            $countObj = [];
+
+            $validator = Validator::make(['academic_year_id' => $academicYearId], [
+                'academic_year_id' => 'required|exists:academic_years,id'
+            ]);
+            
+            if ($validator->fails()) {
+                return response()->json(['error' => 'Invalid academic year ID'], 422);
+            }
+
+            $anonymousIdeaCount = Idea::where('academic_year_id', $academicYearId)
+                ->where('is_anonymous', true)
+                ->count();
+
+            $anonymousCommentCount = Comment::join('ideas', 'comments.idea_id', '=', 'ideas.id')
+                ->where('ideas.academic_year_id', $academicYearId)
+                ->where('comments.is_anonymous', true)
+                ->count();
+
+            $countObj = [
+                'anonymousIdeaCount' => $anonymousIdeaCount,
+                'anonymousCommentCount' => $anonymousCommentCount
+            ];
+
+            return ApiResponseClass::sendResponse($countObj, 'Annonymous counts successfully retrieved.', 200);
+        } catch (\Exception $e) {
+            return ApiResponseClass::rollback($e, "Exception while annonymous getting system report counts!");
+        }
+    }
 }
