@@ -179,9 +179,37 @@ class AcademicYearController extends Controller
             'closureDate' => $obj->closure_date,
             'finalClosureDate' => $obj->final_closure_date,
             'remark' => $obj->remark,
+            'status' => $this->calculateStatus($obj),
             'createdAt' => Carbon::parse($obj->created_at)->format('Y-m-d H:i:s'),
             'updatedAt' => Carbon::parse($obj->updated_at)->format('Y-m-d H:i:s'),
         ];
+    }
+
+    private function calculateStatus($academicYear)
+    {
+        $now = Carbon::now();
+        $startDate = Carbon::parse($academicYear->start_date);
+        $endDate = Carbon::parse($academicYear->end_date);
+        $closureDate = Carbon::parse($academicYear->closure_date);
+        $finalClosureDate = Carbon::parse($academicYear->final_closure_date);
+
+        if ($now->isBefore($startDate)) {
+            return 'future';
+        }
+
+        if ($now->isAfter($endDate)) {
+            return 'past';
+        }
+
+        if ($now->isAfter($finalClosureDate)) {
+            return 'final_closed';
+        }
+
+        if ($now->isAfter($closureDate)) {
+            return 'closed';
+        }
+
+        return 'current';
     }
 
     public function downloadIdeasCsv($id)
