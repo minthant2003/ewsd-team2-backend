@@ -113,4 +113,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Api for anonymous counts QA manager
     Route::get('/getAnonymousCountsByAcademicYearForManager/{academicYearId}', [SystemReportController::class, 'getAnonymousCountsByAcademicYearForManager']);
+
+    // Api for contributor by department
+    Route::get('/getContributorByDepartment/{academicYearId}', [SystemReportController::class, 'getContributorByDepartment']);
+
+    // Api for most viewed ideas QA manager
+    Route::get('/getMostViewedIdeas/{academicYearId}', [SystemReportController::class, 'getMostViewedIdeas']);
 });
