@@ -110,4 +110,20 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Api for bar chart and pie chart, fetching idea by department according to academic year for system report
     Route::get('/getIdeasByDepartmentAccordingToAcademicYear/{academicYearId}', [IdeaController::class, 'getIdeasByDepartmentAccordingToAcademicYear']);
+
+    // Api for anonymous counts QA manager
+    Route::get('/getAnonymousCountsByAcademicYearForManager/{academicYearId}', [SystemReportController::class, 'getAnonymousCountsByAcademicYearForManager']);
+
+    // Api for contributor by department
+    Route::get('/getContributorByDepartment/{academicYearId}', [SystemReportController::class, 'getContributorByDepartment']);
+
+    // Api for most viewed ideas QA manager
+    Route::get('/getMostViewedIdeas/{academicYearId}', [SystemReportController::class, 'getMostViewedIdeas']);
+
+    //Last Login User
+    Route::get("/getLastLoginUser", [AuthController::class, "getLastLoggedInUser"]);
+
+    // Log Browser
+    Route::post('/log-browser', [AuthController::class, 'logUserBrowser']);
+    Route::get('/logged-in-browsers', [AuthController::class, 'browserList']);
 });
