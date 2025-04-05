@@ -6,6 +6,9 @@ use App\Classes\ApiResponseClass;
 use App\Models\AcademicYear;
 use App\Models\Idea;
 use App\Models\IdeaDocument;
+use App\Models\Role;
+use App\Models\User;
+use App\Services\NotiMailService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -47,6 +50,9 @@ class IdeaController extends Controller
                 }
             }
 
+            // send email noti
+            $this->sendNotiToDepartCoordinator($request);
+
             $submittedIdea->load('ideaDocuments'); // load related idea docs
             $camelCaseObj = $this->getIdeaWithDocsInCamelCase($submittedIdea);
             return ApiResponseClass::sendResponse($camelCaseObj, 'Idea submitted successfully.', 200);
@@ -75,28 +81,28 @@ class IdeaController extends Controller
             $resData = [];
             $paginateObj = null;
             $camelList = [];
-            
+
             // Get sort parameter from request
             $sortBy = $request->input('sortBy', 'created_at');
-            
+
             // Map frontend sort parameters to database column names
             $sortColumnMap = [
                 'createdAt' => 'created_at',
                 'popularity' => 'popularity',
             ];
-            
+
             // Get the actual column name to sort by
             $sortColumn = $sortColumnMap[$sortBy] ?? 'created_at';
-            
+
             // Get category filter from request
             $categoryId = $request->input('categoryId');
-            
+
             // Get keyword search from request
             $keyword = $request->input('keyword');
-            
+
             // Get page from request
             $page = $request->input('page', 1);
-            
+
             $query = Idea::with('ideaDocuments')
                 ->join('users', 'ideas.user_id', '=', 'users.id')
                 ->join('categories', 'ideas.category_id', '=', 'categories.id')
@@ -108,12 +114,12 @@ class IdeaController extends Controller
                     DB::raw('COUNT(DISTINCT comments.id) as comments_count')
                 )
                 ->groupBy('ideas.id', 'users.user_name', 'categories.category_name');
-            
+
             // Apply category filter if provided
             if ($categoryId && $categoryId !== 'all') {
                 $query->where('ideas.category_id', $categoryId);
             }
-            
+
             // Apply keyword search if provided
             if ($keyword) {
                 $query->where(function($q) use ($keyword) {
@@ -121,10 +127,10 @@ class IdeaController extends Controller
                       ->orWhere('ideas.content', 'like', '%' . $keyword . '%');
                 });
             }
-            
+
             $ideas = $query->orderBy($sortColumn, 'desc')
                 ->paginate(5, ['*'], 'page', $page);
-                
+
             $paginateObj = $this->getPaginateObj($ideas);
             foreach ($ideas->items() as $idea) {
                 $ideaData = $this->getIdeaWithDocsInCamelCase($idea);
@@ -205,7 +211,7 @@ class IdeaController extends Controller
             ->where('idea_id', $ideaWithDocs->id)
             ->where('reaction', 'like')
             ->count();
-            
+
         $totalUnlikes = DB::table('reactions')
             ->where('idea_id', $ideaWithDocs->id)
             ->where('reaction', 'unlike')
@@ -283,28 +289,28 @@ class IdeaController extends Controller
             $resData = [];
             $paginateObj = null;
             $camelList = [];
-            
+
             // Get sort parameter from request
             $sortBy = $request->input('sortBy', 'created_at');
-            
+
             // Map frontend sort parameters to database column names
             $sortColumnMap = [
                 'createdAt' => 'created_at',
                 'popularity' => 'popularity',
             ];
-            
+
             // Get the actual column name to sort by
             $sortColumn = $sortColumnMap[$sortBy] ?? 'created_at';
-            
+
             // Get category filter from request
             $categoryId = $request->input('categoryId');
-            
+
             // Get keyword search from request
             $keyword = $request->input('keyword');
-            
+
             // Get page from request
             $page = $request->input('page', 1);
-            
+
             $query = Idea::with('ideaDocuments')
                 ->join('users', 'ideas.user_id', '=', 'users.id')
                 ->join('categories', 'ideas.category_id', '=', 'categories.id')
@@ -317,12 +323,12 @@ class IdeaController extends Controller
                 )
                 ->where('ideas.user_id', $userId)
                 ->groupBy('ideas.id', 'users.user_name', 'categories.category_name');
-            
+
             // Apply category filter if provided
             if ($categoryId && $categoryId !== 'all') {
                 $query->where('ideas.category_id', $categoryId);
             }
-            
+
             // Apply keyword search if provided
             if ($keyword) {
                 $query->where(function($q) use ($keyword) {
@@ -330,10 +336,10 @@ class IdeaController extends Controller
                       ->orWhere('ideas.content', 'like', '%' . $keyword . '%');
                 });
             }
-            
+
             $ideas = $query->orderBy($sortColumn, 'desc')
                 ->paginate(5, ['*'], 'page', $page);
-                
+
             $paginateObj = $this->getPaginateObj($ideas);
             foreach ($ideas->items() as $idea) {
                 $ideaData = $this->getIdeaWithDocsInCamelCase($idea);
@@ -439,4 +445,32 @@ class IdeaController extends Controller
             'data' => $ideas
         ]);
     }
+
+    private function sendNotiToDepartCoordinator($request)
+    {
+        $submittedBy = null;
+        $userId = $request->userId;
+        $user = User::find($userId);
+        if ($user) {
+            $coordinatorRoleId = null;
+            $departmentId = $user->department_id;
+            $submittedBy = filter_var($request->isAnonymous, FILTER_VALIDATE_BOOLEAN)
+                ? "Anonymous"
+                : $user->user_name;
+
+            $coordinatorRole = Role::where('role_name', 'coordinator')->first();
+            $coordinatorRoleId = $coordinatorRole->id;
+            $departCoordinator = User::where('department_id', $departmentId)
+                ->where('role_id', $coordinatorRoleId)
+                ->first();
+            if ($departCoordinator) {
+                $submittedAt = Carbon::now()->format('Y-m-d H:i:s');
+                $toEmail = $departCoordinator->email;
+                $subject = "New Idea Submitted";
+                $msg = "A new idea has been submitted. [Submitted By - {$submittedBy}, Submitted At - {$submittedAt}].";
+                NotiMailService::sendNotiMail($toEmail, $subject, $msg);
+            }
+        }
+    }
+
 }

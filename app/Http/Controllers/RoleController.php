@@ -106,6 +106,20 @@ class RoleController extends Controller
         }
     }
 
+    public function getRoleByName($roleName)
+    {
+        try {
+            $role = Role::where('role_name', $roleName)->first();
+            if (!$role) {
+                return ApiResponseClass::sendResponse(null, 'Role not found', 404);
+            }
+            $camelObj = $this->formatCamelCase($role);
+            return ApiResponseClass::sendResponse($camelObj, 'Role fetched successfully');
+        } catch (\Exception $e) {
+            return ApiResponseClass::rollback($e, 'Failed to fetch Role By Name.');
+        }
+    }
+
     // validate role data
     private function roleValidationCheck($request)
     {
