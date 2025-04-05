@@ -20,13 +20,18 @@ class DatabaseSeeder extends Seeder
         //     'email' => 'test@example.com',
         // ]);
 
+        // Comment out this when using the DemoSeeder below
+        // $this->call([
+        //     RoleSeeder::class,
+        //     DepartmentSeeder::class,
+        //     UserSeeder::class,
+        //     AcademicYearSeeder::class,
+        //     CategorySeeder::class,
+        // ]);
+
+        // Uncomment this when using the DemoSeeder below
         $this->call([
-            RoleSeeder::class,
-            DepartmentSeeder::class,
-            UserSeeder::class,
-            AcademicYearSeeder::class,
-            CategorySeeder::class,
-            // DemoSeeder::class, // To be used when demo
+            DemoSeeder::class,
         ]);
     }
 }
