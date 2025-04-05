@@ -16,6 +16,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Artisan;
 
 class DemoSeeder extends Seeder
 {
@@ -1146,6 +1147,8 @@ class DemoSeeder extends Seeder
         foreach ($ideaDocuments as $document) {
             IdeaDocument::create($document);
         }
+
+        $this->runArtisanStorageLink();
     }
 
     /**
@@ -1174,4 +1177,13 @@ class DemoSeeder extends Seeder
         
         $this->command->info('Demo files copied to storage successfully!');
     }
+    
+
+    private function runArtisanStorageLink()
+    {
+        $this->command->info('Running Artisan storage:link...');
+        Artisan::call('storage:link');
+        $this->command->info('Artisan storage:link completed successfully!');
+    }
+
 } 
