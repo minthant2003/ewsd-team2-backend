@@ -32,8 +32,6 @@ class AuthController extends Controller
         if ($user->is_disable == 1) {
             return ApiResponseClass::sendResponse(null, "Your account has been blocked. Please contact admin for more detail.", 300);
         }
-        $user->last_login = now();
-        $user->save();
 
         $this->logUserBrowser($request);
 
