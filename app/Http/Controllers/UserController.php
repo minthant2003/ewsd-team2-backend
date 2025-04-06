@@ -192,7 +192,7 @@ class UserController extends Controller
             $camelObjUser["lastLogin"] = $user->last_login
             ->setTimezone($userTimezone)
             ->format('Y-m-d H:i:s');
-            $camelObjUser["message"] = $user->last_login->format('Y-m-d H:i:s');
+            $camelObjUser["message"] = "Last Login: " . $user->last_login->format('Y-m-d, H:i:s');
         } else {          
             $camelObjUser["lastLogin"] = null;
             $camelObjUser["message"] = "First time here? Welcome to Synergy";
