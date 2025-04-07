@@ -335,4 +335,47 @@ class SystemReportController extends Controller
             'updatedAt' => Carbon::parse($obj->updated_at)->format('Y-m-d H:i:s'),
         ];
     }
+
+    public function getVotesAndIdeaWithoutCommentCountsForManager($academicYearId)
+    {
+        $validator = Validator::make(['academic_year_id' => $academicYearId], [
+            'academic_year_id' => 'required|exists:academic_years,id'
+        ]);
+
+        if ($validator->fails()) {
+            return ApiResponseClass::sendResponse($validator->errors(), "Validation errors", 400);
+        }
+
+        try {
+            // Upvote count
+            $upvoteCount = DB::table('reactions')
+                ->join('ideas', 'reactions.idea_id', '=', 'ideas.id')
+                ->where('ideas.academic_year_id', $academicYearId)
+                ->where('reactions.reaction', 'like')
+                ->count();
+
+            // Downvote count
+            $downvoteCount = DB::table('reactions')
+                ->join('ideas', 'reactions.idea_id', '=', 'ideas.id')
+                ->where('ideas.academic_year_id', $academicYearId)
+                ->where('reactions.reaction', 'unlike')
+                ->count();
+
+            // Ideas without comments
+            $ideasWithoutCommentCount = DB::table('ideas')
+                ->leftJoin('comments', 'ideas.id', '=', 'comments.idea_id')
+                ->where('ideas.academic_year_id', $academicYearId)
+                ->whereNull('comments.id')
+                ->count();
+
+            return ApiResponseClass::sendResponse([
+                'upvoteCount' => $upvoteCount,
+                'downvoteCount' => $downvoteCount,
+                'ideasWithoutCommentCount' => $ideasWithoutCommentCount
+            ], "Counts fetched successfully", 200);
+
+        } catch (\Exception $e) {
+            return ApiResponseClass::rollback($e, "Failed to fetch vote and comment counts!");
+        }
+    }
 }
