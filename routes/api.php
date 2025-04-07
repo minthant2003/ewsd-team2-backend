@@ -126,4 +126,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Log Browser
     Route::post('/log-browser', [AuthController::class, 'logUserBrowser']);
     Route::get('/logged-in-browsers', [AuthController::class, 'browserList']);
+
+    Route::get('/getCountsByAYForQACoordinator/{academicYearId}/{departmentId}', [SystemReportController::class, 'getCountsByAYForQACoordinator']);
 });
