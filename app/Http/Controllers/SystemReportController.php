@@ -164,17 +164,46 @@ class SystemReportController extends Controller
                 return ApiResponseClass::sendResponse($validator->errors(), "Validation errors", 400);
             }
 
-            $mostViewedIdeas = Idea::where('academic_year_id', $academicYearId)
-            ->orderBy('view_count', 'desc')
+            $mostViewedIdeas = Idea::where('ideas.academic_year_id', $academicYearId)
+            ->leftJoin('users', 'ideas.user_id', '=', 'users.id')
+            ->leftJoin('categories', 'ideas.category_id', '=', 'categories.id')
+            ->leftJoin('comments', 'ideas.id', '=', 'comments.idea_id')
+            ->leftJoin('reactions', 'ideas.id', '=', 'reactions.idea_id')
+            ->select(
+                'ideas.id',
+                'ideas.title',
+                'categories.category_name',
+                'ideas.view_count',
+                'users.user_name as author_name',
+                DB::raw('COUNT(DISTINCT comments.id) as comment_count'),
+                DB::raw("SUM(CASE WHEN reactions.reaction = 'like' THEN 1 ELSE 0 END) as upvote_count"),
+                DB::raw("SUM(CASE WHEN reactions.reaction = 'unlike' THEN 1 ELSE 0 END) as downvote_count")
+            )
+            ->groupBy(
+                'ideas.id',
+                'ideas.title',
+                'categories.category_name',
+                'ideas.view_count',
+                'users.user_name'
+            )
+            ->orderByDesc('ideas.view_count')
             ->limit(5)
             ->get();
 
-            $camelObjList = [];
-            foreach ($mostViewedIdeas as $mostViewedIdea) {
-                $camelObjList[] = $this->formatCamelCaseForIdea($mostViewedIdea);
-            }
-
-            return ApiResponseClass::sendResponse($camelObjList, 'Most viewed ideas fetched successfully');
+            $camelCaseIdeas = $mostViewedIdeas->map(function ($idea) {
+                return [
+                    'id' => $idea->id,
+                    'title' => $idea->title,
+                    'categoryName' => $idea->category_name,
+                    'viewCount' => $idea->view_count,
+                    'authorName' => $idea->author_name,
+                    'commentCount' => (int) $idea->comment_count,
+                    'upvoteCount' => (int) $idea->upvote_count,
+                    'downvoteCount' => (int) $idea->downvote_count,
+                ];
+            });
+        
+            return ApiResponseClass::sendResponse($camelCaseIdeas, 'Most viewed ideas fetched successfully');
 
         } catch (\Exception $e) {
             return ApiResponseClass::rollback($e, "Exception while fetching most viewed ideas.");
