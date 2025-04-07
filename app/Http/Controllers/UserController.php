@@ -25,6 +25,7 @@ class UserController extends Controller
                 'phone_no' => $req->phoneNo,
                 'role_id' => $req->roleId,
                 'department_id' => $req->departmentId,
+                'last_login' => now(),
                 'remark' => $req->remark
             ]);
             $camelObj = $this->formatCamelCase($user);
@@ -85,6 +86,7 @@ class UserController extends Controller
                 'phone_no' => $req->phoneNo,
                 'role_id' => $req->roleId,
                 'department_id' => $req->departmentId,
+                'last_login' => now(),
                 'remark' => $req->remark
             ]);
 
@@ -185,6 +187,20 @@ class UserController extends Controller
         $user = request()->user()->load('role');
         $camelObjUser = $this->formatCamelCase($user);
         $camelObjUser["roleName"] = $user->role->role_name ?? null;
+        $userTimezone = $request->input('timezone', 'UTC');
+        if ($user->last_login) {
+            $camelObjUser["lastLogin"] = $user->last_login
+            ->setTimezone($userTimezone)
+            ->format('Y-m-d H:i:s');
+            $camelObjUser["message"] = "Last Login: " . $user->last_login->format('Y-m-d, H:i:s');
+        } else {          
+            $camelObjUser["lastLogin"] = null;
+            $camelObjUser["message"] = "First time here? Welcome to Synergy";
+        }
+        if ($user->last_login === null) {
+            $user->last_login = now();
+            $user->save();
+        }
         return ApiResponseClass::sendResponse($camelObjUser, "Received user successfully", 200);
     }
 

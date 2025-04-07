@@ -209,6 +209,114 @@ class SystemReportController extends Controller
             return ApiResponseClass::rollback($e, "Exception while fetching most viewed ideas.");
         }
     }
+    //get counts by academic year between department for QA coordinator
+    public function getCountsByAYForQACoordinator($academicYearId, $departmentId){
+    try {
+        $countObj = [];
+        $validator = Validator::make([
+            'academic_year_id' => $academicYearId,
+            'department_id' => $departmentId
+        ], [
+            'academic_year_id' => 'required|exists:academic_years,id',
+            'department_id' => 'required|exists:departments,id'
+        ]);
+
+        if ($validator->fails()) {
+            return ApiResponseClass::sendResponse($validator->errors(), "Validation errors", 400);
+        }
+        //idea count
+        $ideaCount = DB::table('ideas')
+            ->join('users', 'ideas.user_id', '=', 'users.id')
+            ->where('ideas.academic_year_id', $academicYearId)
+            ->where('users.department_id', $departmentId)
+            ->count();
+        //comment count
+        $commentCount = DB::table('comments')
+            ->join('ideas', 'comments.idea_id', '=', 'ideas.id')
+            ->join('users', 'comments.user_id', '=', 'users.id')
+            ->where('ideas.academic_year_id', $academicYearId)
+            ->where('users.department_id', $departmentId)
+            ->count();
+        //upVote count
+        $upVoteCount = DB::table('reactions')
+            ->join('ideas', 'reactions.idea_id', '=', 'ideas.id')
+            ->join('users', 'reactions.user_id', '=', 'users.id')
+            ->where('ideas.academic_year_id', $academicYearId)
+            ->where('users.department_id', $departmentId)
+            ->where('reactions.reaction', 'like')
+            ->count();
+        //downVote count
+        $downVoteCount = DB::table('reactions')
+            ->join('ideas', 'reactions.idea_id', '=', 'ideas.id')
+            ->join('users', 'reactions.user_id', '=', 'users.id')
+            ->where('ideas.academic_year_id', $academicYearId)
+            ->where('users.department_id', $departmentId)
+            ->where('reactions.reaction', 'dislike')
+            ->count();
+        //idea without comment count
+        $ideaWithoutCommentCount = DB::table('ideas')
+            ->leftJoin('comments', 'ideas.id', '=', 'comments.idea_id')
+            ->join('users', 'ideas.user_id', '=', 'users.id')
+            ->where('ideas.academic_year_id', $academicYearId)
+            ->where('users.department_id', $departmentId)
+            ->whereNull('comments.idea_id')
+            ->count();
+        //Anonymous comment count
+        $anonymousCommentCount = DB::table('comments')
+            ->join('ideas', 'comments.idea_id', '=', 'ideas.id')
+            ->join('users', 'comments.user_id', '=', 'users.id')
+            ->where('ideas.academic_year_id', $academicYearId)
+            ->where('users.department_id', $departmentId)
+            ->where('comments.is_anonymous', true)
+            ->count();
+        //Anonymous idea count
+        $anonymousIdeaCount = DB::table('ideas')
+            ->join('users', 'ideas.user_id', '=', 'users.id')
+            ->where('ideas.academic_year_id', $academicYearId)
+            ->where('users.department_id', $departmentId)
+            ->where('ideas.is_anonymous', true)
+            ->count();
+        //most viewed idea  top (3) (view count,comment count,upvote count,downvote count)
+        $mostViewedIdeas = DB::table('ideas')
+            ->join('users', 'ideas.user_id', '=', 'users.id')
+            ->leftJoin('comments', 'ideas.id', '=', 'comments.idea_id')
+            ->leftJoin('reactions', function ($join) {
+                $join->on('ideas.id', '=', 'reactions.idea_id');
+            })
+            ->select(
+                'ideas.id',
+                'ideas.title',
+                'ideas.view_count',
+                DB::raw('COUNT(DISTINCT comments.id) as comment_count'),
+                DB::raw("SUM(CASE WHEN reactions.reaction = 'like' THEN 1 ELSE 0 END) as upvote_count"),
+                DB::raw("SUM(CASE WHEN reactions.reaction = 'dislike' THEN 1 ELSE 0 END) as downvote_count"),
+                DB::raw('(ideas.view_count + COUNT(DISTINCT comments.id) 
+                    + SUM(CASE WHEN reactions.reaction = "like" THEN 1 ELSE 0 END)
+                    + SUM(CASE WHEN reactions.reaction = "dislike" THEN 1 ELSE 0 END)
+                ) as total_engagement')
+            )
+            ->where('ideas.academic_year_id', $academicYearId)
+            ->where('users.department_id', $departmentId)
+            ->groupBy('ideas.id', 'ideas.title', 'ideas.view_count')
+            ->orderByDesc('total_engagement')
+            ->limit(3)
+            ->get();
+        $countObj = [
+            'ideaCount' => $ideaCount,
+            'commentCount' => $commentCount,
+            'upVoteCount' => $upVoteCount,
+            'downVoteCount' => $downVoteCount,
+            'ideaWithoutCommentCount' => $ideaWithoutCommentCount,
+            'anonymousCommentCount' => $anonymousCommentCount,
+            'anonymousIdeaCount' => $anonymousIdeaCount,
+            'mostViewedIdeas' => $mostViewedIdeas,
+        ];
+
+        return ApiResponseClass::sendResponse($countObj, 'Idea count successfully retrieved.', 200);
+    } catch (\Exception $e) {
+        return ApiResponseClass::rollback($e, "Exception while getting system report counts!");
+    }
+}
 
     private function formatCamelCaseForIdea($obj)
     {

@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Classes\ApiResponseClass;
 use App\Models\Comment;
 use App\Models\Idea;
+use App\Models\User;
+use App\Services\NotiMailService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
@@ -32,6 +34,9 @@ class CommentController extends Controller
             // Prepare comment data
             $data = $this->requestCommentData($request, $ideaId);
             $comment = Comment::create($data);
+
+            // send email notification
+            $this->sendNotiToAuthor($request, $ideaId);
 
             $camelObj = $this->formatCamelCase($comment);
             return ApiResponseClass::sendResponse($camelObj, 'Comment added successfully.', 201);
@@ -88,6 +93,29 @@ class CommentController extends Controller
             return ApiResponseClass::sendResponse(null, 'Comment deleted successfully.');
         } catch (\Exception $e) {
             return ApiResponseClass::rollback($e, 'Failed to delete comment.');
+        }
+    }
+
+    private function sendNotiToAuthor($request, $ideaId)
+    {
+        $commentedBy = null;
+        $writerId = $request->userId;
+        $writer = User::find($writerId);
+        $author = null;
+        $idea = Idea::find($ideaId);
+        if ($writer && $idea) {
+            $authorId = $idea->user_id;
+            $author = User::find($authorId);
+            $commentedBy = filter_var($request->isAnonymous, FILTER_VALIDATE_BOOLEAN)
+                ? "Anonymous"
+                : $writer->user_name;
+            if ($author) {
+                $commentedAt = Carbon::now()->format('Y-m-d H:i:s');
+                $toEmail = $author->email;
+                $subject = "New Comment on Your Idea";
+                $msg = "A new comment has been made. [Idea Title - {$idea->title}, Commented by - {$commentedBy}, Commented at - {$commentedAt}].";
+                NotiMailService::sendNotiMail($toEmail, $subject, $msg);
+            }
         }
     }
 
