@@ -128,4 +128,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/logged-in-browsers', [AuthController::class, 'browserList']);
 
     Route::get('/getCountsByAYForQACoordinator/{academicYearId}/{departmentId}', [SystemReportController::class, 'getCountsByAYForQACoordinator']);
+
+    // Api for QA manager counts of upvotes, downvotes and idea without comment
+    Route::get('/getVotesAndIdeaWithoutCommentCountsForManager/{academicYearId}', [SystemReportController::class, 'getVotesAndIdeaWithoutCommentCountsForManager']);
+    
 });
