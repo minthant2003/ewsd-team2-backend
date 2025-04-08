@@ -46,11 +46,74 @@ class ReportedIdeaController extends Controller
     public function getReportedIdeas(){
         try {
             $reportedIdeas = ReportedIdea::join('ideas', 'reported_ideas.idea_id', '=', 'ideas.id')
-                ->select('reported_ideas.*', 'ideas.user_id as idea_user_id')
+                ->join('users as idea_authors', 'ideas.user_id', '=', 'idea_authors.id')
+                ->join('users as reporters', 'reported_ideas.user_id', '=', 'reporters.id')
+                ->join('categories', 'ideas.category_id', '=', 'categories.id')
+                ->select(
+                    'reported_ideas.*',
+                    'ideas.title',
+                    'ideas.content',
+                    'ideas.is_anonymous',
+                    'ideas.view_count',
+                    'ideas.popularity',
+                    'ideas.report_count',
+                    'ideas.is_hidden',
+                    'ideas.created_at as idea_created_at',
+                    'ideas.updated_at as idea_updated_at',
+                    'idea_authors.id as author_id',
+                    'idea_authors.user_name as author_name',
+                    'idea_authors.email as author_email',
+                    'idea_authors.department_id as author_department_id',
+                    'idea_authors.is_disable as author_is_disable',
+                    'reporters.id as reporter_id',
+                    'reporters.user_name as reporter_name',
+                    'reporters.email as reporter_email',
+                    'categories.id as category_id',
+                    'categories.category_name'
+                )
                 ->get();
+                
             $camelObjList = [];
             foreach ($reportedIdeas as $reportedIdea) {
-                $camelObjList[] = $this->formatCamelCase($reportedIdea);
+                $camelObjList[] = [
+                    'id' => $reportedIdea->id,
+                    'userId' => $reportedIdea->user_id,
+                    'ideaId' => $reportedIdea->idea_id,
+                    'createdAt' => Carbon::parse($reportedIdea->created_at)->format('Y-m-d H:i:s'),
+                    'updatedAt' => Carbon::parse($reportedIdea->updated_at)->format('Y-m-d H:i:s'),
+                    'idea' => [
+                        'id' => $reportedIdea->idea_id,
+                        'title' => $reportedIdea->title,
+                        'content' => $reportedIdea->content,
+                        'isAnonymous' => (bool) $reportedIdea->is_anonymous,
+                        'viewCount' => $reportedIdea->view_count,
+                        'popularity' => $reportedIdea->popularity,
+                        'reportCount' => $reportedIdea->report_count,
+                        'isHidden' => (bool) $reportedIdea->is_hidden,
+                        'createdAt' => Carbon::parse($reportedIdea->idea_created_at)->format('Y-m-d H:i:s'),
+                        'updatedAt' => Carbon::parse($reportedIdea->idea_updated_at)->format('Y-m-d H:i:s'),
+                        'categoryId' => $reportedIdea->category_id,
+                        'categoryName' => $reportedIdea->category_name
+                    ],
+                    'author' => $reportedIdea->is_anonymous ? [
+                        'id' => $reportedIdea->author_id,
+                        'userName' => 'Anonymous',
+                        'email' => null,
+                        'departmentId' => $reportedIdea->author_department_id,
+                        'isDisable' => $reportedIdea->author_is_disable
+                    ] : [
+                        'id' => $reportedIdea->author_id,
+                        'userName' => $reportedIdea->author_name,
+                        'email' => $reportedIdea->author_email,
+                        'departmentId' => $reportedIdea->author_department_id,
+                        'isDisable' => $reportedIdea->author_is_disable
+                    ],
+                    'reporter' => [
+                        'id' => $reportedIdea->reporter_id,
+                        'userName' => $reportedIdea->reporter_name,
+                        'email' => $reportedIdea->reporter_email
+                    ]
+                ];
             }
             return ApiResponseClass::sendResponse($camelObjList, 'Reported Ideas fetched successfully.', 200);
         } catch (\Exception $e) {
@@ -67,7 +130,30 @@ class ReportedIdeaController extends Controller
             }
 
             $reportedIdeas = ReportedIdea::join('ideas', 'reported_ideas.idea_id', '=', 'ideas.id')
-                ->select('reported_ideas.*', 'ideas.user_id as idea_user_id')
+                ->join('users as idea_authors', 'ideas.user_id', '=', 'idea_authors.id')
+                ->join('users as reporters', 'reported_ideas.user_id', '=', 'reporters.id')
+                ->join('categories', 'ideas.category_id', '=', 'categories.id')
+                ->select(
+                    'reported_ideas.*',
+                    'ideas.title',
+                    'ideas.content',
+                    'ideas.is_anonymous',
+                    'ideas.view_count',
+                    'ideas.popularity',
+                    'ideas.report_count',
+                    'ideas.is_hidden',
+                    'ideas.created_at as idea_created_at',
+                    'ideas.updated_at as idea_updated_at',
+                    'idea_authors.id as author_id',
+                    'idea_authors.user_name as author_name',
+                    'idea_authors.email as author_email',
+                    'idea_authors.department_id as author_department_id',
+                    'reporters.id as reporter_id',
+                    'reporters.user_name as reporter_name',
+                    'reporters.email as reporter_email',
+                    'categories.id as category_id',
+                    'categories.category_name'
+                )
                 ->where('reported_ideas.user_id', $userId)
                 ->get();
 
@@ -77,7 +163,43 @@ class ReportedIdeaController extends Controller
 
             $camelObjList = [];
             foreach ($reportedIdeas as $reportedIdea) {
-                $camelObjList[] = $this->formatCamelCase($reportedIdea);
+                $camelObjList[] = [
+                    'id' => $reportedIdea->id,
+                    'userId' => $reportedIdea->user_id,
+                    'ideaId' => $reportedIdea->idea_id,
+                    'createdAt' => Carbon::parse($reportedIdea->created_at)->format('Y-m-d H:i:s'),
+                    'updatedAt' => Carbon::parse($reportedIdea->updated_at)->format('Y-m-d H:i:s'),
+                    'idea' => [
+                        'id' => $reportedIdea->idea_id,
+                        'title' => $reportedIdea->title,
+                        'content' => $reportedIdea->content,
+                        'isAnonymous' => (bool) $reportedIdea->is_anonymous,
+                        'viewCount' => $reportedIdea->view_count,
+                        'popularity' => $reportedIdea->popularity,
+                        'reportCount' => $reportedIdea->report_count,
+                        'isHidden' => (bool) $reportedIdea->is_hidden,
+                        'createdAt' => Carbon::parse($reportedIdea->idea_created_at)->format('Y-m-d H:i:s'),
+                        'updatedAt' => Carbon::parse($reportedIdea->idea_updated_at)->format('Y-m-d H:i:s'),
+                        'categoryId' => $reportedIdea->category_id,
+                        'categoryName' => $reportedIdea->category_name
+                    ],
+                    'author' => $reportedIdea->is_anonymous ? [
+                        'id' => $reportedIdea->author_id,
+                        'userName' => 'Anonymous',
+                        'email' => null,
+                        'departmentId' => $reportedIdea->author_department_id
+                    ] : [
+                        'id' => $reportedIdea->author_id,
+                        'userName' => $reportedIdea->author_name,
+                        'email' => $reportedIdea->author_email,
+                        'departmentId' => $reportedIdea->author_department_id
+                    ],
+                    'reporter' => [
+                        'id' => $reportedIdea->reporter_id,
+                        'userName' => $reportedIdea->reporter_name,
+                        'email' => $reportedIdea->reporter_email
+                    ]
+                ];
             }
 
             return ApiResponseClass::sendResponse($camelObjList, 'Reported ideas fetched successfully.', 200);

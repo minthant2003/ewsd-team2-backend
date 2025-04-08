@@ -77,6 +77,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete("delete/idea/{id}", [IdeaController::class, "deleteIdeaById"]);
     Route::post("report/idea/{id}", [IdeaController::class, "reportIdea"]);
     Route::post("view/idea/{id}/", [IdeaController::class, "increaseViewCount"]);
+    Route::post("hide/idea/{id}", [IdeaController::class, "hideIdea"]);
+    Route::post("show/idea/{id}", [IdeaController::class, "showIdea"]);
 
     //Reaction API
     Route::post("/createReaction",[ReactionController::class,"createReaction"]);

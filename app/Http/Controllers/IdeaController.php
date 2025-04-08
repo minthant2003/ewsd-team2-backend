@@ -110,10 +110,13 @@ class IdeaController extends Controller
                 ->select(
                     'ideas.*',
                     'users.user_name as user_name',
+                    'users.is_disable as user_is_disable',
                     'categories.category_name as category_name',
                     DB::raw('COUNT(DISTINCT comments.id) as comments_count')
                 )
-                ->groupBy('ideas.id', 'users.user_name', 'categories.category_name');
+                ->groupBy('ideas.id', 'users.user_name', 'categories.category_name', 'users.is_disable')
+                ->where('users.is_disable', false)
+                ->where('ideas.is_hidden', false);
 
             // Apply category filter if provided
             if ($categoryId && $categoryId !== 'all') {
@@ -240,6 +243,7 @@ class IdeaController extends Controller
                 'updatedAt' => Carbon::parse($doc->updated_at)->format('Y-m-d H:i:s'),
             ]),
             "reportCount" => $ideaWithDocs->report_count,
+            "isHidden" => (bool) $ideaWithDocs->is_hidden,
             "totalLikes" => $totalLikes,
             "totalUnlikes" => $totalUnlikes,
         ];
@@ -364,13 +368,14 @@ class IdeaController extends Controller
             $idea = Idea::with(['ideaDocuments'])
                 ->join('users', 'ideas.user_id', '=', 'users.id')
                 ->join('categories', 'ideas.category_id', '=', 'categories.id')
-                ->select('ideas.*', 'users.user_name', 'categories.category_name')
+                ->select('ideas.*', 'users.user_name', 'categories.category_name', 'users.is_disable as user_is_disable')
                 ->where('ideas.id', $id)
                 ->first();
 
             if (!$idea) {
                 return ApiResponseClass::sendResponse(null, 'Idea not found', 404);
             }
+            
 
             // Get comments with user information
             $comments = DB::table('comments')
@@ -379,7 +384,8 @@ class IdeaController extends Controller
                 ->select(
                     'comments.*',
                     'users.user_name',
-                    'users.id as user_id'
+                    'users.id as user_id',
+                    'users.is_disable as is_disable'
                 )
                 ->orderBy('comments.created_at', 'desc')
                 ->get()
@@ -389,6 +395,7 @@ class IdeaController extends Controller
                         'desc' => $comment->desc,
                         'userId' => $comment->user_id,
                         'userName' => $comment->user_name,
+                        'userIsDisable' => $comment->is_disable,
                         'isAnonymous' => (bool) $comment->is_anonymous,
                         'createdAt' => Carbon::parse($comment->created_at)->format('Y-m-d H:i:s'),
                         'updatedAt' => Carbon::parse($comment->updated_at)->format('Y-m-d H:i:s'),
@@ -399,7 +406,7 @@ class IdeaController extends Controller
             $ideaData['userName'] = $idea->user_name;
             $ideaData['categoryName'] = $idea->category_name;
             $ideaData['comments'] = $comments;
-
+            $ideaData['userIsDisable'] = $idea->user_is_disable;
             return ApiResponseClass::sendResponse($ideaData, 'Idea details fetched successfully');
         } catch (\Exception $e) {
             return ApiResponseClass::rollback($e, 'Failed to fetch idea details.');
@@ -473,4 +480,33 @@ class IdeaController extends Controller
         }
     }
 
+    public function hideIdea($id)
+    {
+        try {
+            $idea = Idea::find($id);
+            if (!$idea) {
+                return ApiResponseClass::sendResponse(null, 'Idea not found.', 404);
+            }
+            $idea->is_hidden = true;
+            $idea->save();
+            return ApiResponseClass::sendResponse(null, 'Idea hidden successfully.', 200);
+        } catch (\Exception $e) {
+            return ApiResponseClass::rollback($e, 'Failed to hide idea.');
+        }
+    }
+
+    public function showIdea($id)
+    {
+        try {
+            $idea = Idea::find($id);
+            if (!$idea) {
+                return ApiResponseClass::sendResponse(null, 'Idea not found.', 404);
+            }
+            $idea->is_hidden = false;
+            $idea->save();
+            return ApiResponseClass::sendResponse(null, 'Idea shown successfully.', 200);
+        } catch (\Exception $e) {
+            return ApiResponseClass::rollback($e, 'Failed to show idea.');
+        }
+    }
 }

@@ -27,4 +27,5 @@ class Idea extends Model
     {
         return $this->belongsTo(AcademicYear::class);
     }
+    
 }

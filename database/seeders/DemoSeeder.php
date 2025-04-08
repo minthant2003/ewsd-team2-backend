@@ -231,6 +231,7 @@ class DemoSeeder extends Seeder
                 'category_id' => 2,
                 'remark' => 'Proposed by Mathematics Department',
                 'report_count' => 0,
+                'is_hidden' => false,
             ],
             [
                 'title' => 'Improve Student Onboarding Process',
@@ -243,6 +244,7 @@ class DemoSeeder extends Seeder
                 'category_id' => 1,
                 'remark' => 'Proposed by Literature & Languages Department',
                 'report_count' => 0,
+                'is_hidden' => false,
             ],
             [
                 'title' => 'Enhance Student Support System',
@@ -255,6 +257,7 @@ class DemoSeeder extends Seeder
                 'category_id' => 3,
                 'remark' => 'Proposed by Psychology Department',
                 'report_count' => 1,
+                'is_hidden' => true,
             ],
             [
                 'title' => 'Green Campus Initiative',
@@ -267,6 +270,7 @@ class DemoSeeder extends Seeder
                 'category_id' => 8,
                 'remark' => 'Proposed by Biology Department',
                 'report_count' => 0,
+                'is_hidden' => false,
             ],
             [
                 'title' => 'Faculty Skill Development Program',
@@ -279,6 +283,7 @@ class DemoSeeder extends Seeder
                 'category_id' => 6,
                 'remark' => 'Proposed by Physics Department',
                 'report_count' => 0,
+                'is_hidden' => false,
             ],
             [
                 'title' => 'Cross-Departmental Collaboration Platform',
@@ -291,6 +296,7 @@ class DemoSeeder extends Seeder
                 'category_id' => 1,
                 'remark' => 'Anonymous submission',
                 'report_count' => 0,
+                'is_hidden' => false,
             ],
             [
                 'title' => 'Implement Flexible Learning Arrangements',
@@ -303,6 +309,7 @@ class DemoSeeder extends Seeder
                 'category_id' => 4,
                 'remark' => 'Proposed by Business Administration Department',
                 'report_count' => 0,
+                'is_hidden' => false,
             ],
             [
                 'title' => 'Student Feedback Analysis System',
@@ -315,6 +322,7 @@ class DemoSeeder extends Seeder
                 'category_id' => 3,
                 'remark' => 'Proposed by Psychology Department',
                 'report_count' => 0,
+                'is_hidden' => false,
             ],
             [
                 'title' => 'AI-Powered Research Trend Analysis',
@@ -327,6 +335,7 @@ class DemoSeeder extends Seeder
                 'category_id' => 5,
                 'remark' => 'Proposed by Literature & Languages Department',
                 'report_count' => 0,
+                'is_hidden' => false,
             ],
             [
                 'title' => 'Sustainable Campus Resource Management',
@@ -339,6 +348,7 @@ class DemoSeeder extends Seeder
                 'category_id' => 8,
                 'remark' => 'Proposed by Biology Department',
                 'report_count' => 0,
+                'is_hidden' => false,
             ],
             [
                 'title' => 'Wellness Program for Students and Faculty',
@@ -351,6 +361,7 @@ class DemoSeeder extends Seeder
                 'category_id' => 4,
                 'remark' => 'Proposed by Business Administration Department',
                 'report_count' => 0,
+                'is_hidden' => false,
             ],
             [
                 'title' => 'Digital Documentation System',
@@ -363,6 +374,7 @@ class DemoSeeder extends Seeder
                 'category_id' => 7,
                 'remark' => 'Proposed by Mathematics Department',
                 'report_count' => 0,
+                'is_hidden' => false,
             ],
             [
                 'title' => 'Advanced Cybersecurity Training Program',
@@ -375,6 +387,7 @@ class DemoSeeder extends Seeder
                 'category_id' => 2,
                 'remark' => 'Proposed by Computer Science Department',
                 'report_count' => 0,
+                'is_hidden' => false,
             ],
             [
                 'title' => 'Community Engagement Initiative',
@@ -387,6 +400,7 @@ class DemoSeeder extends Seeder
                 'category_id' => 4,
                 'remark' => 'Proposed by Literature & Languages Department',
                 'report_count' => 0,
+                'is_hidden' => false,
             ],
             [
                 'title' => 'Academic Knowledge Base Enhancement',
@@ -399,6 +413,7 @@ class DemoSeeder extends Seeder
                 'category_id' => 6,
                 'remark' => 'Anonymous submission',
                 'report_count' => 0,
+                'is_hidden' => false,
             ],
         ];
 
