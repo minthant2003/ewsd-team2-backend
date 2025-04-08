@@ -28,6 +28,16 @@ class IdeaController extends Controller
                     300);
             }
 
+            // Check if the current user is blocked
+            $user = User::find($request->userId);
+            if ($user->is_disable) {
+                return ApiResponseClass::sendResponse(
+                    null,
+                    'Your account is blocked. Please contact admin for assistance.',
+                    400
+                );
+            }
+            
             $validationFailObj = $this->validateAddRequest($request);
             if ($validationFailObj) {
                 return $validationFailObj;
