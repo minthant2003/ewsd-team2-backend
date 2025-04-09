@@ -229,6 +229,7 @@ class SystemReportController extends Controller
             ->join('users', 'ideas.user_id', '=', 'users.id')
             ->where('ideas.academic_year_id', $academicYearId)
             ->where('users.department_id', $departmentId)
+            ->where('users.role_id', 3)  
             ->count();
         //comment count
         $commentCount = DB::table('comments')
@@ -236,6 +237,7 @@ class SystemReportController extends Controller
             ->join('users', 'comments.user_id', '=', 'users.id')
             ->where('ideas.academic_year_id', $academicYearId)
             ->where('users.department_id', $departmentId)
+            ->where('users.role_id', 3)
             ->count();
         //upVote count
         $upVoteCount = DB::table('reactions')
@@ -243,6 +245,7 @@ class SystemReportController extends Controller
             ->join('users', 'reactions.user_id', '=', 'users.id')
             ->where('ideas.academic_year_id', $academicYearId)
             ->where('users.department_id', $departmentId)
+            ->where('users.role_id', 3)
             ->where('reactions.reaction', 'like')
             ->count();
         //downVote count
@@ -251,6 +254,7 @@ class SystemReportController extends Controller
             ->join('users', 'reactions.user_id', '=', 'users.id')
             ->where('ideas.academic_year_id', $academicYearId)
             ->where('users.department_id', $departmentId)
+            ->where('users.role_id', 3)
             ->where('reactions.reaction', 'dislike')
             ->count();
         //idea without comment count
@@ -259,6 +263,7 @@ class SystemReportController extends Controller
             ->join('users', 'ideas.user_id', '=', 'users.id')
             ->where('ideas.academic_year_id', $academicYearId)
             ->where('users.department_id', $departmentId)
+            ->where('users.role_id', 3)
             ->whereNull('comments.idea_id')
             ->count();
         //Anonymous comment count
@@ -267,6 +272,7 @@ class SystemReportController extends Controller
             ->join('users', 'comments.user_id', '=', 'users.id')
             ->where('ideas.academic_year_id', $academicYearId)
             ->where('users.department_id', $departmentId)
+            ->where('users.role_id', 3)
             ->where('comments.is_anonymous', true)
             ->count();
         //Anonymous idea count
@@ -274,6 +280,7 @@ class SystemReportController extends Controller
             ->join('users', 'ideas.user_id', '=', 'users.id')
             ->where('ideas.academic_year_id', $academicYearId)
             ->where('users.department_id', $departmentId)
+            ->where('users.role_id', 3)
             ->where('ideas.is_anonymous', true)
             ->count();
         //most viewed idea  top (3) (view count,comment count,upvote count,downvote count)
@@ -287,6 +294,7 @@ class SystemReportController extends Controller
                 'ideas.id',
                 'ideas.title',
                 'ideas.view_count',
+                'users.user_name as author',
                 DB::raw('COUNT(DISTINCT comments.id) as comment_count'),
                 DB::raw("SUM(CASE WHEN reactions.reaction = 'like' THEN 1 ELSE 0 END) as upvote_count"),
                 DB::raw("SUM(CASE WHEN reactions.reaction = 'dislike' THEN 1 ELSE 0 END) as downvote_count"),
@@ -297,7 +305,8 @@ class SystemReportController extends Controller
             )
             ->where('ideas.academic_year_id', $academicYearId)
             ->where('users.department_id', $departmentId)
-            ->groupBy('ideas.id', 'ideas.title', 'ideas.view_count')
+            ->where('users.role_id', 3)
+            ->groupBy('ideas.id', 'ideas.title', 'ideas.view_count', 'users.user_name')
             ->orderByDesc('total_engagement')
             ->limit(3)
             ->get();
