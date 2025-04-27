@@ -1085,10 +1085,6 @@ class DemoSeeder extends Seeder
                 'user_id' => 4, // emma_davis
             ],
             [
-                'idea_id' => 6,
-                'user_id' => 5, // alex_thompson
-            ],
-            [
                 'idea_id' => 9,
                 'user_id' => 11, // daniel_brown
             ],
