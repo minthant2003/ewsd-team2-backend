@@ -22,16 +22,15 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www
 
+# Copy existing application directory
+COPY . /var/www
+
+# Install dependencies as root
+RUN composer install
+
 # Set ownership and permissions
 RUN chown -R www-data:www-data /var/www && \
     chmod -R 775 /var/www
-
-# Copy existing application directory
-COPY --chown=www-data:www-data . /var/www
-
-# Install dependencies
-USER www-data
-RUN composer install
 
 # Create storage directory structure if it doesn't exist
 RUN mkdir -p /var/www/storage/app/public
@@ -43,6 +42,9 @@ RUN chmod -R 775 /var/www/storage \
 # Remove existing storage link if it exists and create new one
 RUN rm -f /var/www/public/storage \
     && php artisan storage:link
+
+# Switch to www-data user
+USER www-data
 
 EXPOSE 9000
 CMD ["php-fpm"] 
