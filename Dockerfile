@@ -22,10 +22,6 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www
 
-# Create www-data user and group if they don't exist
-RUN groupadd -g 1000 www-data && \
-    useradd -u 1000 -ms /bin/bash -g www-data www-data
-
 # Set ownership and permissions
 RUN chown -R www-data:www-data /var/www && \
     chmod -R 775 /var/www

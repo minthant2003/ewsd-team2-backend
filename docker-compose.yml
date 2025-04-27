@@ -7,7 +7,10 @@ services:
         container_name: laravel-app
         restart: unless-stopped
         working_dir: /var/www
-        user: "1000:1000"
+        user: "33:33"
+        environment:
+            - GIT_SAFE_DIRECTORY=/var/www
+            - COMPOSER_ALLOW_SUPERUSER=1
         volumes:
             - ./:/var/www
         depends_on:
