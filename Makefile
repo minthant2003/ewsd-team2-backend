@@ -67,9 +67,9 @@ cache: ## Clear all Laravel caches
 .PHONY: dev
 dev: ## Start development servers (Vite, Queue, Pail)
 	@make up
-	docker compose exec app npm run dev & \
-	docker compose exec app php artisan queue:work & \
-	docker compose exec app php artisan pail
+	docker compose exec -T app npm run dev & \
+	docker compose exec -T app php artisan queue:work & \
+	docker compose exec -T app php artisan pail
 
 .PHONY: stop
 stop: ## Stop development servers

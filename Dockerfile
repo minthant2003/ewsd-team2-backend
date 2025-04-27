@@ -22,26 +22,31 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www
 
+# Create www-data user and group if they don't exist
+RUN groupadd -g 1000 www-data && \
+    useradd -u 1000 -ms /bin/bash -g www-data www-data
+
+# Set ownership and permissions
+RUN chown -R www-data:www-data /var/www && \
+    chmod -R 775 /var/www
+
 # Copy existing application directory
-COPY . /var/www
+COPY --chown=www-data:www-data . /var/www
 
 # Install dependencies
+USER www-data
 RUN composer install
 
 # Create storage directory structure if it doesn't exist
 RUN mkdir -p /var/www/storage/app/public
 
 # Set storage permissions
-RUN chown -R www-data:www-data /var/www/storage \
-    && chown -R www-data:www-data /var/www/bootstrap/cache \
-    && chmod -R 775 /var/www/storage \
+RUN chmod -R 775 /var/www/storage \
     && chmod -R 775 /var/www/bootstrap/cache
 
 # Remove existing storage link if it exists and create new one
 RUN rm -f /var/www/public/storage \
     && php artisan storage:link
-
-USER www-data
 
 EXPOSE 9000
 CMD ["php-fpm"] 
